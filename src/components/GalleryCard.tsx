@@ -1,3 +1,4 @@
+import React, { useImperativeHandle, useRef, forwardRef } from "react";
 import Image from "next/image";
 import LikeButton from "./LikeButton";
 
@@ -14,7 +15,19 @@ export type GalleryCardProps = {
   children?: React.ReactNode;
 };
 
-export default function GalleryCard({ image, onClick, children }: GalleryCardProps) {
+export type GalleryCardHandle = {
+  refetchLikeState: () => void;
+};
+
+const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, onClick, children }, ref) => {
+  const likeButtonRef = useRef<{ refetch: () => void }>(null);
+
+  useImperativeHandle(ref, () => ({
+    refetchLikeState: () => {
+      likeButtonRef.current?.refetch();
+    },
+  }));
+
   return (
     <div
       className="bg-[var(--card)] text-[var(--card-foreground)] border border-[var(--border)] rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 cursor-pointer group overflow-hidden flex flex-col"
@@ -52,7 +65,7 @@ export default function GalleryCard({ image, onClick, children }: GalleryCardPro
             onKeyDown={e => e.stopPropagation()}
             tabIndex={-1}
           >
-            <LikeButton imageId={image.id} />
+            <LikeButton ref={likeButtonRef} imageId={image.id} />
           </span>
         </div>
         <p className="text-xs text-[var(--muted-foreground,#9ca3af)] mt-auto">
@@ -62,4 +75,7 @@ export default function GalleryCard({ image, onClick, children }: GalleryCardPro
       </div>
     </div>
   );
-}
+});
+
+GalleryCard.displayName = "GalleryCard";
+export default GalleryCard;

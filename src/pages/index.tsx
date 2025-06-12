@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Modal from "@/components/Modal";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useSession } from "next-auth/react";
-import GalleryCard from "@/components/GalleryCard";
+import GalleryCard, { GalleryCardHandle } from "@/components/GalleryCard";
 import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import LikeButton from "@/components/LikeButton";
@@ -36,6 +36,7 @@ export default function PublicGallery() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
 
   // Show toast if redirected with a toast query param (e.g. after login)
   useEffect(() => {
@@ -174,6 +175,7 @@ export default function PublicGallery() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {images.map(img => (
             <GalleryCard
+              ref={el => { cardRefs.current[img.id] = el; }}
               key={img.id}
               image={img}
               onClick={() => setSelectedImage(img)}
@@ -221,15 +223,23 @@ export default function PublicGallery() {
               className="w-full h-auto rounded"
               priority={false}
             />
-            {/* Like button below the image */}
-            <div className="mt-3">
-              <LikeButton imageId={selectedImage.id} />
+            <div className="flex items-start justify-between mt-4 mb-2">
+              <div className="min-w-0 max-w-[70%]">
+                <h2 className="text-xl font-bold">{selectedImage.title}</h2>
+                <p className="text-gray-600">{selectedImage.description}</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(selectedImage.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <span className="ml-2">
+                <LikeButton
+                  imageId={selectedImage.id}
+                  onLike={() => {
+                    cardRefs.current[selectedImage.id]?.refetchLikeState();
+                  }}
+                />
+              </span>
             </div>
-            <h2 className="text-xl font-bold mt-4">{selectedImage.title}</h2>
-            <p className="text-gray-600">{selectedImage.description}</p>
-            <p className="text-xs text-gray-400 mt-2">
-              {new Date(selectedImage.createdAt).toLocaleString()}
-            </p>
             {session?.user?.email === selectedImage.user.email && (
               <div className="flex flex-col gap-2 mt-4">
                 {editingId === selectedImage.id ? (

@@ -114,8 +114,17 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
             className="w-full h-auto max-h-[60vh] object-contain rounded mb-4 shadow"
             priority
           />
-          <div className="mt-3">
-            <LikeButton imageId={image.id} />
+          <div className="flex items-start justify-between mt-4 mb-2">
+            <div className="min-w-0 max-w-[70%]">
+              <h2 className="text-2xl font-bold">{image.title}</h2>
+              <p className="text-gray-700 mt-2">{image.description}</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {new Date(image.createdAt).toLocaleString()}
+              </p>
+            </div>
+            <span className="ml-2">
+              <LikeButton imageId={image.id} />
+            </span>
           </div>
           {editing ? (
             <form
@@ -158,11 +167,6 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
             </form>
           ) : (
             <>
-              <h2 className="text-2xl font-bold mt-4">{image.title}</h2>
-              <p className="text-gray-700 mt-2">{image.description}</p>
-              <p className="text-xs text-gray-400 mt-2">
-                {new Date(image.createdAt).toLocaleString()}
-              </p>
               {isOwner && (
                 <div className="flex gap-4 mt-4">
                   <button

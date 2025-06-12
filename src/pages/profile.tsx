@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 import Modal from "@/components/Modal";
-import GalleryCard from "@/components/GalleryCard";
+import GalleryCard, { GalleryCardHandle } from "@/components/GalleryCard";
 import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
@@ -45,6 +45,7 @@ export default function ProfilePage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -274,13 +275,14 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto mt-12">
         <h2 className="text-2xl font-bold mb-6 text-center">My Gallery</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {images.map(img => (
-            <GalleryCard
-              key={img.id}
-              image={img}
-              onClick={() => setSelectedImage(img)}
-            />
-          ))}
+        {images.map(img => (
+        <GalleryCard
+            key={img.id}
+            ref={el => { cardRefs.current[img.id] = el; }}
+            image={img}
+            onClick={() => setSelectedImage(img)}
+        />
+        ))}
         </div>
         <div ref={loaderRef} />
         {loadingMore && (
@@ -305,9 +307,22 @@ export default function ProfilePage() {
               height={300}
               className="w-full h-auto rounded"
             />
-            {/* Like button below the image */}
-            <div className="mt-3">
-              <LikeButton imageId={selectedImage.id} />
+            <div className="flex items-start justify-between mt-4 mb-2">
+              <div className="min-w-0 max-w-[70%]">
+                <h2 className="text-xl font-bold">{selectedImage.title}</h2>
+                <p className="text-gray-600">{selectedImage.description}</p>
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(selectedImage.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <span className="ml-2">
+                <LikeButton
+                  imageId={selectedImage.id}
+                  onLike={() => {
+                    cardRefs.current[selectedImage.id]?.refetchLikeState();
+                  }}
+                />
+              </span>
             </div>
             {editingId === selectedImage.id ? (
               <form
@@ -346,31 +361,24 @@ export default function ProfilePage() {
                 </div>
               </form>
             ) : (
-              <>
-                <h2 className="text-xl font-bold mt-4">{selectedImage.title}</h2>
-                <p className="text-gray-600">{selectedImage.description}</p>
-                <p className="text-xs text-gray-400 mt-2">
-                  {new Date(selectedImage.createdAt).toLocaleString()}
-                </p>
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => {
-                      setEditingId(selectedImage.id);
-                      setEditTitle(selectedImage.title);
-                      setEditDescription(selectedImage.description);
-                    }}
-                    className="text-blue-500 hover:underline cursor-pointer transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(selectedImage.id)}
-                    className="text-red-500 hover:underline cursor-pointer transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => {
+                    setEditingId(selectedImage.id);
+                    setEditTitle(selectedImage.title);
+                    setEditDescription(selectedImage.description);
+                  }}
+                  className="text-blue-500 hover:underline cursor-pointer transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(selectedImage.id)}
+                  className="text-red-500 hover:underline cursor-pointer transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
             )}
           </div>
         )}
