@@ -42,6 +42,8 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.645 0.246 16.439);
+  --unfollow-bg: oklch(0.85 0.01 285.823);
+  --unfollow-fg: oklch(0.21 0.006 285.885);
 }
 
 .dark {
@@ -76,6 +78,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.645 0.246 16.439);
+  --unfollow-bg: oklch(0.35 0.01 285.823);
+  --unfollow-fg: oklch(0.985 0 0);
 }
 
 

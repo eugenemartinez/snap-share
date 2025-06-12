@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
-      select: { email: true, avatar: true, bio: true },
+      select: { email: true, username: true, avatar: true, bio: true }, // <-- add username here
     });
     return res.status(200).json(user);
   }
@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...(bio !== undefined ? { bio } : {}),
           ...(avatarPath ? { avatar: avatarPath } : {}),
         },
-        select: { email: true, avatar: true, bio: true },
+        select: { email: true, username: true, avatar: true, bio: true }, // <-- add username here too
       });
 
       return res.status(200).json(updated);

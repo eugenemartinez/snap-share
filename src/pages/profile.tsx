@@ -13,6 +13,7 @@ import LikeButton from "@/components/LikeButton";
 
 type Profile = {
   email: string;
+  username?: string;
   avatar?: string;
   bio?: string;
 };
@@ -43,6 +44,7 @@ export default function ProfilePage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [followerCount, setFollowerCount] = useState<number>(0); // <-- NEW
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
@@ -79,6 +81,16 @@ export default function ProfilePage() {
         });
     }
   }, [status, router]);
+
+  // Fetch follower count for the logged-in user
+  useEffect(() => {
+    if (status === "authenticated" && profile?.username) {
+      fetch(`/api/user/${encodeURIComponent(profile.username)}/follow`)
+        .then(res => res.json())
+        .then(data => setFollowerCount(data.count))
+        .catch(() => setFollowerCount(0));
+    }
+  }, [status, profile?.username]);
 
   // Infinite scroll: fetch more images when page changes
   useEffect(() => {
@@ -145,7 +157,22 @@ export default function ProfilePage() {
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
-    if (file) setAvatar(file);
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setToast({ message: "Avatar must be a JPG, PNG, GIF, or WEBP image.", type: "error" });
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      setToast({ message: "Avatar must be 2MB or less.", type: "error" });
+      return;
+    }
+
+    setAvatar(file);
   }
 
   function handleDelete(id: string) {
@@ -214,7 +241,7 @@ export default function ProfilePage() {
         <h2 className="text-2xl font-bold mb-4 text-center">My Profile</h2>
         <form onSubmit={handleProfileUpdate} className="flex flex-col gap-4">
           <div className="flex flex-col items-center mb-2">
-            {/* Avatar upload button (not nested in another button) */}
+            {/* Avatar upload button */}
             <label
               className="relative group cursor-pointer"
               tabIndex={0}
@@ -249,6 +276,12 @@ export default function ProfilePage() {
               />
             </label>
             <p className="mt-2 text-sm text-gray-500">{profile.email}</p>
+            {/* Follower count */}
+            {profile.username && (
+              <p className="text-gray-500 text-sm">
+                {followerCount} follower{followerCount === 1 ? "" : "s"}
+              </p>
+            )}
           </div>
           <label htmlFor="bio" className="font-semibold">
             Bio:
