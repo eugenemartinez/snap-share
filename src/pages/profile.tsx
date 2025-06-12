@@ -44,8 +44,7 @@ export default function ProfilePage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [followerCount, setFollowerCount] = useState<number>(0); // <-- NEW
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const [followerCount, setFollowerCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
 
@@ -114,24 +113,6 @@ export default function ProfilePage() {
         setLoadingMore(false);
       });
   }, [page]);
-
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-    const currentLoader = loaderRef.current;
-    const observer = new window.IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          setPage(p => p + 1);
-        }
-      },
-      { threshold: 1 }
-    );
-    if (currentLoader) observer.observe(currentLoader);
-    return () => {
-      if (currentLoader) observer.unobserve(currentLoader);
-    };
-  }, [hasMore, loadingMore]);
 
   async function handleProfileUpdate(e: React.FormEvent) {
     e.preventDefault();
@@ -319,7 +300,16 @@ export default function ProfilePage() {
             />
           ))}
         </div>
-        <div ref={loaderRef} />
+        {hasMore && !loadingMore && (
+          <div className="flex justify-center my-6">
+            <button
+              onClick={() => setPage(p => p + 1)}
+              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Load More
+            </button>
+          </div>
+        )}
         {loadingMore && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-4 mx-4 sm:mx-auto">
             {Array.from({ length: 4 }).map((_, i) => (

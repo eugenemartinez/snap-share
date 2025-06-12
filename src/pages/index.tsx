@@ -35,7 +35,6 @@ export default function PublicGallery() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
 
   // Show toast if redirected with a toast query param (e.g. after login)
@@ -95,24 +94,6 @@ export default function PublicGallery() {
       });
   }, [page]);
 
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-    const currentLoader = loaderRef.current;
-    const observer = new window.IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          setPage(p => p + 1);
-        }
-      },
-      { threshold: 1 }
-    );
-    if (currentLoader) observer.observe(currentLoader);
-    return () => {
-      if (currentLoader) observer.unobserve(currentLoader);
-    };
-  }, [hasMore, loadingMore]);
-
   async function handleDelete(id: string) {
     setLoading(true);
     const res = await fetch("/api/delete-image", {
@@ -154,9 +135,9 @@ export default function PublicGallery() {
     return (
       <>
         <Navbar />
-        <div className="max-w-2xl mx-auto mt-8">
+        <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
           <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 sm:mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
             {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
@@ -185,9 +166,19 @@ export default function PublicGallery() {
             />
           ))}
         </div>
-        <div ref={loaderRef} />
+        {/* Load More button */}
+        {hasMore && !loadingMore && (
+          <div className="flex justify-center my-6">
+            <button
+              onClick={() => setPage(p => p + 1)}
+              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Load More
+            </button>
+          </div>
+        )}
         {loadingMore && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
             {Array.from({ length: 4 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}

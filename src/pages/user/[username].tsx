@@ -2,12 +2,13 @@ import { GetServerSideProps } from "next";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import GalleryCard, { GalleryCardHandle } from "@/components/GalleryCard";
-import { PrismaClient, Image as PrismaImage } from "@prisma/client";
-import { useRef, useState } from "react";
+import { PrismaClient } from "@prisma/client";
+import { useEffect, useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import LikeButton from "@/components/LikeButton";
 import FollowButton from "@/components/FollowButton";
 import { useSession } from "next-auth/react";
+import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,15 @@ type UserProfile = {
   username: string;
   avatar?: string | null;
   bio?: string | null;
-  images: PrismaImage[];
+  // Remove images from here, we'll fetch them client-side
+};
+
+type ImageType = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  createdAt: string;
 };
 
 export default function PublicProfile({
@@ -29,8 +38,36 @@ export default function PublicProfile({
   const { data: session } = useSession();
   const isOwnProfile = session?.user?.email === user!.email;
 
-  const [selectedImage, setSelectedImage] = useState<PrismaImage | null>(null);
+  const [images, setImages] = useState<ImageType[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/user/${user?.username}/images?page=1&limit=12`)
+      .then(async (res) => {
+        const data = await res.json();
+        setImages(data.images || []);
+        setHasMore(data.page < data.totalPages);
+        setLoading(false);
+      });
+  }, [user?.username]);
+
+  useEffect(() => {
+    if (page === 1) return;
+    setLoadingMore(true);
+    fetch(`/api/user/${user?.username}/images?page=${page}&limit=12`)
+      .then(async (res) => {
+        const data = await res.json();
+        setImages((prev) => [...prev, ...(data.images || [])]);
+        setHasMore(data.page < data.totalPages);
+        setLoadingMore(false);
+      });
+  }, [page, user?.username]);
 
   if (!user) return <p>User not found.</p>;
   return (
@@ -64,7 +101,7 @@ export default function PublicProfile({
           {user.username}&apos;s Gallery
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {user.images.map((img) => (
+          {images.map((img) => (
             <GalleryCard
               key={img.id}
               ref={(el) => {
@@ -75,11 +112,27 @@ export default function PublicProfile({
             />
           ))}
         </div>
-        {/* End of gallery message */}
-        {user.images.length > 0 && (
+        {hasMore && !loadingMore && (
+          <div className="flex justify-center my-6">
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Load More
+            </button>
+          </div>
+        )}
+        {loadingMore && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <GalleryCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+        {!hasMore && images.length > 0 && (
           <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
         )}
-        {user.images.length === 0 && (
+        {images.length === 0 && !loading && (
           <p className="mt-4 text-gray-500 text-center">
             No images uploaded yet.
           </p>
@@ -132,7 +185,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       username: true,
       avatar: true,
       bio: true,
-      images: true,
+      // images: true, // No longer needed
     },
   });
 
