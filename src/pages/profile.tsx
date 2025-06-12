@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import Navbar from "@/components/Navbar";
+import Navbar, { NavbarHandle } from "@/components/Navbar";
 import Image from "next/image";
 import Modal from "@/components/Modal";
 import GalleryCard, { GalleryCardHandle } from "@/components/GalleryCard";
@@ -47,6 +47,7 @@ export default function ProfilePage() {
   const [followerCount, setFollowerCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
+  const navbarRef = useRef<NavbarHandle>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -129,10 +130,18 @@ export default function ProfilePage() {
     if (res.ok) {
       const data = await res.json();
       setProfile(data);
-      setMessage("Profile updated!");
+      setMessage("");
       setAvatar(null);
+      setToast({
+        message:
+          process.env.NEXT_PUBLIC_USE_BLOB_STORAGE === "true"
+            ? "Profile updated! Avatar changes may take a few minutes to appear."
+            : "Profile updated!",
+        type: "success",
+      });
+      navbarRef.current?.refetchAvatar();
     } else {
-      setMessage("Update failed.");
+      setToast({ message: "Update failed.", type: "error" });
     }
   }
 
@@ -218,7 +227,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar ref={navbarRef} />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="max-w-md mx-4 sm:mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
         <h2 className="text-2xl font-bold mb-4 text-center">My Profile</h2>

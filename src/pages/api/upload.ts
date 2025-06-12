@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import formidable from "formidable";
+import { put } from "@vercel/blob";
 import fs from "fs";
 import path from "path";
+import formidable from "formidable";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { PrismaClient } from "@prisma/client";
@@ -86,17 +87,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // --- Sharp compression step ---
-    const fileName = path.basename(file.filepath);
-    const compressedPath = path.join(uploadDir, `compressed-${fileName}`);
+    const compressedPath = file.filepath + "-compressed.jpg";
     await sharp(file.filepath)
-      .resize({ width: 1600 }) // adjust as needed
-      .jpeg({ quality: 80 })   // or .png({ quality: 80 }) for PNGs
+      .resize({ width: 1600 }) 
+      .jpeg({ quality: 80 }) 
       .toFile(compressedPath);
 
-    // Remove the original file
-    fs.unlinkSync(file.filepath);
+    let imageUrl: string;
 
-    const fileUrl = `/uploads/compressed-${fileName}`;
+    if (process.env.USE_BLOB_STORAGE === "true") {
+      // Vercel Blob upload to snap_share/ folder
+      const fileName = `snap_share/${file.originalFilename || "image.jpg"}`;
+      const stream = fs.createReadStream(compressedPath);
+      const blob = await put(fileName, stream, {
+        access: "public",
+      });
+      imageUrl = blob.url;
+      fs.unlinkSync(file.filepath);
+      fs.unlinkSync(compressedPath);
+    } else {
+      // Local upload
+      const localPath = path.join("/uploads", path.basename(compressedPath));
+      fs.renameSync(compressedPath, path.join(process.cwd(), "public", localPath));
+      imageUrl = localPath;
+      // Optionally clean up original file
+      fs.unlinkSync(file.filepath);
+    }
 
     // Save metadata to DB
     const user = await prisma.user.findUnique({ where: { email: userEmail } });
@@ -106,11 +122,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         title: String(title),
         description: String(description),
-        url: fileUrl,
+        url: imageUrl,
         userId: user.id,
       },
     });
 
-    res.status(201).json({ id: createdImage.id, url: fileUrl });
+    res.status(201).json({ id: createdImage.id, url: imageUrl });
   });
 }

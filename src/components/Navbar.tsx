@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { useRouter } from "next/router";
 import Spinner from "./Spinner";
 import DarkModeToggle from "./DarkModeToggle";
 
-export default function Navbar() {
+export type NavbarHandle = {
+  refetchAvatar: () => void;
+};
+
+const Navbar = forwardRef(function Navbar(props, ref) {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -14,17 +18,30 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Fetch avatar logic
+  const fetchAvatar = React.useCallback(() => {
     if (session) {
       fetch("/api/profile")
         .then((res) => res.json())
         .then((data) => {
-          if (data?.avatar) setAvatar(data.avatar);
-          else setAvatar("/avatar.png");
+          if (data?.avatar) {
+            setAvatar(`${data.avatar}?t=${Date.now()}`);
+          } else {
+            setAvatar("/avatar.png");
+          }
         })
         .catch(() => setAvatar("/avatar.png"));
     }
   }, [session]);
+
+  // Expose refetchAvatar to parent via ref
+  useImperativeHandle(ref, () => ({
+    refetchAvatar: fetchAvatar,
+  }));
+
+  useEffect(() => {
+    fetchAvatar();
+  }, [fetchAvatar]);
 
   useEffect(() => {
     const handleStart = () => setLoading(true);
@@ -262,4 +279,6 @@ export default function Navbar() {
       </nav>
     </>
   );
-}
+});
+
+export default Navbar;

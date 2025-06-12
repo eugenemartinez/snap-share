@@ -17,10 +17,10 @@ function isValidUsername(username: string) {
   return /^[a-zA-Z0-9_]{3,20}$/.test(username);
 }
 
-function isStrongPassword(password: string) {
-  // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
-}
+// function isStrongPassword(password: string) {
+//   // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+//   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
+// }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -59,12 +59,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isValidUsername(cleanUsername)) {
     return res.status(400).json({ message: "Username must be 3-20 characters, letters, numbers, or underscores" });
   }
-  if (!isStrongPassword(password)) {
-    return res.status(400).json({
-      message:
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
-    });
-  }
+  // if (!isStrongPassword(password)) {
+  //   return res.status(400).json({
+  //     message:
+  //       "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+  //   });
+  // }
 
   // Enforce user limit
   const userCount = await prisma.user.count();

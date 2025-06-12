@@ -6,6 +6,7 @@ import formidable, { File } from "formidable";
 import fs from "fs";
 import path from "path";
 import { rateLimit } from "@/utils/rateLimit";
+import { put } from "@vercel/blob";
 
 export const config = {
   api: {
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
-      select: { email: true, username: true, avatar: true, bio: true }, // <-- add username here
+      select: { email: true, username: true, avatar: true, bio: true },
     });
     return res.status(200).json(user);
   }
@@ -66,12 +67,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (avatarFile.size && avatarFile.size > 2 * 1024 * 1024) {
           return res.status(400).json({ message: "Avatar must be 2MB or less" });
         }
-        const uploadDir = path.join(process.cwd(), "public", "avatars");
-        fs.mkdirSync(uploadDir, { recursive: true });
-        const fileName = `${userEmail}-avatar${path.extname(avatarFile.originalFilename || "")}`;
-        const filePath = path.join(uploadDir, fileName);
-        fs.renameSync(avatarFile.filepath, filePath);
-        avatarPath = `/avatars/${fileName}`;
+
+        if (process.env.USE_BLOB_STORAGE === "true") {
+          // Upload avatar to Vercel Blob under snap_share/avatars/
+          const fileName = `snap_share/avatars/${userEmail}-avatar${path.extname(avatarFile.originalFilename || "")}`;
+          const stream = fs.createReadStream(avatarFile.filepath);
+          const blob = await put(fileName, stream, {
+            access: "public",
+            allowOverwrite: true,
+          });
+          avatarPath = blob.url;
+          fs.unlinkSync(avatarFile.filepath);
+        } else {
+          // Local upload
+          const uploadDir = path.join(process.cwd(), "public", "avatars");
+          fs.mkdirSync(uploadDir, { recursive: true });
+          const fileName = `${userEmail}-avatar${path.extname(avatarFile.originalFilename || "")}`;
+          const filePath = path.join(uploadDir, fileName);
+          fs.renameSync(avatarFile.filepath, filePath);
+          avatarPath = `/avatars/${fileName}`;
+        }
       }
 
       // Update user
@@ -81,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...(bio !== undefined ? { bio } : {}),
           ...(avatarPath ? { avatar: avatarPath } : {}),
         },
-        select: { email: true, username: true, avatar: true, bio: true }, // <-- add username here too
+        select: { email: true, username: true, avatar: true, bio: true },
       });
 
       return res.status(200).json(updated);

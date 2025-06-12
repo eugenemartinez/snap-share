@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
@@ -15,6 +15,7 @@ export default function Upload() {
   const [loading, setLoading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
@@ -25,6 +26,8 @@ export default function Upload() {
     if (file) {
       if (file.size > MAX_SIZE) {
         setFileError("File is too large. Max size is 5MB.");
+        // Clear the file input so user can select again
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
       setImage(file);
@@ -36,6 +39,7 @@ export default function Upload() {
     setImage(null);
     setPreview(null);
     setFileError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -102,6 +106,7 @@ export default function Upload() {
           )}
           {!image && (
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               aria-label="Select image"
