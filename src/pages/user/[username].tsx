@@ -5,6 +5,7 @@ import GalleryCard from "@/components/GalleryCard";
 import { PrismaClient, Image as PrismaImage } from "@prisma/client";
 import { useState } from "react";
 import Modal from "@/components/Modal";
+import LikeButton from "@/components/LikeButton";
 
 const prisma = new PrismaClient();
 
@@ -29,7 +30,7 @@ export default function PublicProfile({ user }: { user: UserProfile | null }) {
             alt="Avatar"
             width={96}
             height={96}
-            className="rounded-full border shadow"
+            className="rounded-full aspect-square object-cover border shadow"
           />
           <p className="mt-2 text-lg font-bold">@{user.username}</p>
         </div>
@@ -63,6 +64,10 @@ export default function PublicProfile({ user }: { user: UserProfile | null }) {
               height={500}
               className="w-full h-auto rounded"
             />
+            {/* Like button below the image */}
+            <div className="mt-3">
+              <LikeButton imageId={selectedImage.id} />
+            </div>
             <h2 className="text-xl font-bold mt-4">{selectedImage.title}</h2>
             <p className="text-gray-700 mt-2">{selectedImage.description}</p>
             <p className="text-xs text-gray-400 mt-2">

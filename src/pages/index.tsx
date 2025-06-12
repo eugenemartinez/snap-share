@@ -8,6 +8,8 @@ import { useSession } from "next-auth/react";
 import GalleryCard from "@/components/GalleryCard";
 import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
+import LikeButton from "@/components/LikeButton";
+import Link from "next/link";
 
 type ImageType = {
   id: string;
@@ -193,29 +195,23 @@ export default function PublicGallery() {
         {selectedImage && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span
-                onClick={() => router.push(`/user/${selectedImage.user.username}`)}
+              <Link
+                href={`/user/${selectedImage.user.username}`}
+                className="flex items-center gap-2 group outline-none transition"
                 tabIndex={0}
-                role="button"
                 aria-label={`Go to @${selectedImage.user.username}'s profile`}
-                onKeyDown={e => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    router.push(`/user/${selectedImage.user.username}`);
-                  }
-                }}
-                className="flex items-center gap-2 cursor-pointer group outline-none"
               >
                 <Image
                   src={selectedImage.user.avatar || "/avatar.png"}
                   alt="User Avatar"
                   width={32}
                   height={32}
-                  className="rounded-full border group-hover:ring-2 group-hover:ring-blue-400 transition"
+                  className="rounded-full aspect-square object-cover border group-hover:ring-2 group-hover:ring-[var(--primary)] transition"
                 />
-                <span className="font-semibold text-blue-600 group-hover:underline">
+                <span className="font-semibold text-[var(--primary)] group-hover:underline">
                   @{selectedImage.user.username}
                 </span>
-              </span>
+              </Link>
             </div>
             <Image
               src={selectedImage.url}
@@ -225,6 +221,10 @@ export default function PublicGallery() {
               className="w-full h-auto rounded"
               priority={false}
             />
+            {/* Like button below the image */}
+            <div className="mt-3">
+              <LikeButton imageId={selectedImage.id} />
+            </div>
             <h2 className="text-xl font-bold mt-4">{selectedImage.title}</h2>
             <p className="text-gray-600">{selectedImage.description}</p>
             <p className="text-xs text-gray-400 mt-2">

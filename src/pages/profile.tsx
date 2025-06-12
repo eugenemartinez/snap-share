@@ -9,6 +9,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import ProfileSectionSkeleton from "@/components/ProfileSectionSkeleton";
+import LikeButton from "@/components/LikeButton";
 
 type Profile = {
   email: string;
@@ -304,6 +305,10 @@ export default function ProfilePage() {
               height={300}
               className="w-full h-auto rounded"
             />
+            {/* Like button below the image */}
+            <div className="mt-3">
+              <LikeButton imageId={selectedImage.id} />
+            </div>
             {editingId === selectedImage.id ? (
               <form
                 onSubmit={e => {

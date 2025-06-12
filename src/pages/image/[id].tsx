@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
+import LikeButton from "@/components/LikeButton";
+import Link from "next/link";
 
 const prisma = new PrismaClient();
 
@@ -93,14 +95,16 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
       <div className="min-h-[85vh] flex items-center justify-center">
         <div className="max-w-4xl w-full mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
           <div className="flex items-center gap-3 mb-4">
-            <Image
-              src={image.user.avatar || "/avatar.png"}
-              alt="User Avatar"
-              width={40}
-              height={40}
-              className="rounded-full border"
-            />
-            <span className="font-semibold text-lg">@{image.user.username}</span>
+            <Link href={`/user/${image.user.username}`} className="flex items-center gap-3 group">
+              <Image
+                src={image.user.avatar || "/avatar.png"}
+                alt="User Avatar"
+                width={40}
+                height={40}
+                className="rounded-full aspect-square object-cover border group-hover:ring-2 group-hover:ring-[var(--primary)] transition"
+              />
+              <span className="font-semibold text-lg group-hover:underline">@{image.user.username}</span>
+            </Link>
           </div>
           <Image
             src={image.url}
@@ -110,6 +114,9 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
             className="w-full h-auto max-h-[60vh] object-contain rounded mb-4 shadow"
             priority
           />
+          <div className="mt-3">
+            <LikeButton imageId={image.id} />
+          </div>
           {editing ? (
             <form
               onSubmit={e => handleUpdate(e, image.id, editTitle, editDescription)}

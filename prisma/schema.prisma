@@ -23,6 +23,11 @@ model User {
   avatar    String?  @default("/avatar.png")
   bio       String?
 
+  // Relations for likes and follows
+  imageLikes   ImageLike[] // images this user liked
+  followers    Follow[]    @relation("following") // users following this user
+  following    Follow[]    @relation("follower")  // users this user is following
+
   @@map("snapshare_user")
 }
 
@@ -35,5 +40,32 @@ model Image {
   userId      String
   createdAt   DateTime @default(now())
 
+  // Relation for likes
+  likes       ImageLike[]
+
   @@map("snapshare_image")
+}
+
+model ImageLike {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  image     Image    @relation(fields: [imageId], references: [id])
+  imageId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, imageId])
+  @@map("snapshare_image_like")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  followerId  String
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("snapshare_follow")
 }

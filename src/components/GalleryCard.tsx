@@ -1,4 +1,5 @@
 import Image from "next/image";
+import LikeButton from "./LikeButton";
 
 export type GalleryCardProps = {
   image: {
@@ -7,9 +8,10 @@ export type GalleryCardProps = {
     title: string;
     description: string;
     createdAt: string | Date;
+    // Optionally, add user info if needed for avatar/username
   };
   onClick?: () => void;
-  children?: React.ReactNode; // For optional extra controls
+  children?: React.ReactNode;
 };
 
 export default function GalleryCard({ image, onClick, children }: GalleryCardProps) {
@@ -33,9 +35,29 @@ export default function GalleryCard({ image, onClick, children }: GalleryCardPro
         />
       </div>
       <div className="p-4 flex-1 flex flex-col">
-        <h3 className="font-semibold text-lg truncate">{image.title}</h3>
-        <p className="text-sm text-[var(--muted-foreground,#6b7280)] mt-1 line-clamp-2">{image.description}</p>
-        <p className="text-xs text-[var(--muted-foreground,#9ca3af)] mt-auto">{new Date(image.createdAt).toLocaleString()}</p>
+        <div className="flex items-start justify-between mb-2">
+          <div className="min-w-0 max-w-[70%]">
+            <h3 className="font-semibold text-lg truncate" title={image.title}>
+              {image.title}
+            </h3>
+            <p
+              className="text-sm text-[var(--muted-foreground,#6b7280)] mt-1 line-clamp-2 break-words"
+              title={image.description}
+            >
+              {image.description}
+            </p>
+          </div>
+          <span
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+            tabIndex={-1}
+          >
+            <LikeButton imageId={image.id} />
+          </span>
+        </div>
+        <p className="text-xs text-[var(--muted-foreground,#9ca3af)] mt-auto">
+          {new Date(image.createdAt).toLocaleString()}
+        </p>
         {children}
       </div>
     </div>
