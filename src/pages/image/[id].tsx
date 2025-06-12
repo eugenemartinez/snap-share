@@ -93,7 +93,7 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center">
-        <div className="max-w-4xl w-full mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
+        <div className="max-w-4xl w-full mx-4 sm:mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
           <div className="flex items-center gap-3 mb-4">
             <Link href={`/user/${image.user.username}`} className="flex items-center gap-3 group">
               <Image

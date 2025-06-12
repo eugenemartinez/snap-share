@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Image from "next/image";
 
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
 export default function Upload() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -11,21 +13,29 @@ export default function Upload() {
   const [preview, setPreview] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const router = useRouter();
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
-    setImage(file);
+    setFileError(null);
+    setImage(null);
+    setPreview(null);
+
     if (file) {
+      if (file.size > MAX_SIZE) {
+        setFileError("File is too large. Max size is 5MB.");
+        return;
+      }
+      setImage(file);
       setPreview(URL.createObjectURL(file));
-    } else {
-      setPreview(null);
     }
   }
 
   function handleRemoveImage() {
     setImage(null);
     setPreview(null);
+    setFileError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,24 +45,31 @@ export default function Upload() {
       return;
     }
     setLoading(true);
+    setToast(null);
+
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("image", image);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    setLoading(false);
-    if (res.ok) {
-      const data = await res.json();
-      setToast({ message: "Upload successful!", type: "success" });
-      setTimeout(() => router.push(`/image/${data.id}`), 1200);
-    } else {
-      const data = await res.json();
-      setToast({ message: data.message || "Upload failed", type: "error" });
+      if (res.ok) {
+        const data = await res.json();
+        setToast({ message: "Upload successful!", type: "success" });
+        setTimeout(() => router.push(`/image/${data.id}`), 1200);
+      } else {
+        const data = await res.json();
+        setToast({ message: data.message || "Upload failed", type: "error" });
+      }
+    } catch {
+      setToast({ message: "Upload failed", type: "error" });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -60,12 +77,11 @@ export default function Upload() {
     <>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="min-h-[calc(85vh-56px)] flex items-center justify-center">
+      <div className="min-h-[calc(85vh-56px)] flex items-center justify-center mx-4 sm:mx-auto">
         <form onSubmit={handleSubmit} className="max-w-2xl w-full flex flex-col gap-4 bg-[var(--card)] text-[var(--card-foreground)] shadow-lg rounded p-8">
           <h2 className="text-2xl font-bold mb-2 text-center">Upload Image</h2>
           {preview && (
             <div className="relative mb-2">
-
               <Image
                 src={preview}
                 alt="Preview"
@@ -78,6 +94,7 @@ export default function Upload() {
                 onClick={handleRemoveImage}
                 className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold hover:bg-black/80 transition cursor-pointer"
                 aria-label="Remove image"
+                disabled={loading}
               >
                 &times;
               </button>
@@ -91,7 +108,11 @@ export default function Upload() {
               onChange={handleFileChange}
               required
               className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded"
+              disabled={loading}
             />
+          )}
+          {fileError && (
+            <p className="text-red-500 text-sm">{fileError}</p>
           )}
           <input
             type="text"
@@ -113,9 +134,9 @@ export default function Upload() {
           <button
             type="submit"
             className="bg-[var(--primary)] text-[var(--primary-foreground)] py-2 rounded font-semibold transition-all duration-200 hover:scale-105 focus:scale-105 cursor-pointer"
-            disabled={loading}
+            disabled={loading || !!fileError}
           >
-            {loading ? "Uploading..." : "Upload"}
+            {loading ? "Uploading & Processing..." : "Upload"}
           </button>
         </form>
       </div>

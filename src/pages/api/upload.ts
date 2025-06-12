@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { PrismaClient } from "@prisma/client";
 import { rateLimit } from "@/utils/rateLimit";
+import sharp from "sharp";
 
 export const config = {
   api: {
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Enforce image limit
   const imageCount = await prisma.image.count();
-  if (imageCount >= 500) {
+  if (imageCount >= 300) {
     return res.status(403).json({ message: "Image limit reached. No more uploads allowed." });
   }
 
@@ -77,8 +78,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (Array.isArray(file)) file = file[0];
     if (!file) return res.status(400).json({ message: "No file uploaded" });
 
+    // File size check (5MB = 5 * 1024 * 1024 bytes)
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      fs.unlinkSync(file.filepath);
+      return res.status(400).json({ message: "File is too large. Max size is 5MB." });
+    }
+
+    // --- Sharp compression step ---
     const fileName = path.basename(file.filepath);
-    const fileUrl = `/uploads/${fileName}`;
+    const compressedPath = path.join(uploadDir, `compressed-${fileName}`);
+    await sharp(file.filepath)
+      .resize({ width: 1600 }) // adjust as needed
+      .jpeg({ quality: 80 })   // or .png({ quality: 80 }) for PNGs
+      .toFile(compressedPath);
+
+    // Remove the original file
+    fs.unlinkSync(file.filepath);
+
+    const fileUrl = `/uploads/compressed-${fileName}`;
 
     // Save metadata to DB
     const user = await prisma.user.findUnique({ where: { email: userEmail } });

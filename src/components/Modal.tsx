@@ -75,7 +75,7 @@ export default function Modal({ open, onClose, children, title, size = "lg" }: M
       aria-modal="true"
       role="dialog"
     >
-      <div className={`relative bg-[var(--card)] text-[var(--card-foreground)] p-6 rounded shadow-lg w-full ${sizeClass[size]} overflow-auto transition-all duration-200 scale-100 animate-fade-in`}>
+      <div className={`relative bg-[var(--card)] mx-4 md:mx-4 sm:mx-auto text-[var(--card-foreground)] p-6 rounded shadow-lg w-full ${sizeClass[size]} overflow-auto transition-all duration-200 scale-100 animate-fade-in`}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-2xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 focus:outline-none cursor-pointer transition-colors"

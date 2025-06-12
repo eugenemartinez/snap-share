@@ -220,10 +220,12 @@ export default function ProfilePage() {
     return (
       <>
         <Navbar />
-        <ProfileSectionSkeleton />
+        <div className="max-w-md mx-4 sm:mx-auto mt-8">
+          <ProfileSectionSkeleton />
+        </div>
         <div className="max-w-2xl mx-auto mt-8">
           <h2 className="text-2xl font-bold mb-4 text-center">My Gallery</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mx-4 sm:mx-auto">
             {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
@@ -237,7 +239,7 @@ export default function ProfilePage() {
     <>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="max-w-md mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
+      <div className="max-w-md mx-4 sm:mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
         <h2 className="text-2xl font-bold mb-4 text-center">My Profile</h2>
         <form onSubmit={handleProfileUpdate} className="flex flex-col gap-4">
           <div className="flex flex-col items-center mb-2">
@@ -307,23 +309,27 @@ export default function ProfilePage() {
 
       <div className="max-w-2xl mx-auto mt-12">
         <h2 className="text-2xl font-bold mb-6 text-center">My Gallery</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {images.map(img => (
-        <GalleryCard
-            key={img.id}
-            ref={el => { cardRefs.current[img.id] = el; }}
-            image={img}
-            onClick={() => setSelectedImage(img)}
-        />
-        ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 sm:mx-auto mb-4">
+          {images.map(img => (
+            <GalleryCard
+              key={img.id}
+              ref={el => { cardRefs.current[img.id] = el; }}
+              image={img}
+              onClick={() => setSelectedImage(img)}
+            />
+          ))}
         </div>
         <div ref={loaderRef} />
         {loadingMore && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-4 mx-4 sm:mx-auto">
             {Array.from({ length: 4 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
           </div>
+        )}
+        {/* End of gallery message */}
+        {!hasMore && images.length > 0 && (
+          <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
         )}
         {images.length === 0 && !loadingMore && (
           <p className="mt-4 text-gray-500 text-center">No images uploaded yet.</p>

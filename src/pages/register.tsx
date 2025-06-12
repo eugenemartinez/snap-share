@@ -62,7 +62,7 @@ export default function Register() {
     <>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="min-h-[85vh] flex items-center justify-center">
+      <div className="min-h-[85vh] flex items-center justify-center mx-4 sm:mx-auto">
         <form
           onSubmit={handleSubmit}
           className="max-w-md w-full p-8 bg-[var(--card)] text-[var(--card-foreground)] rounded-xl shadow-lg flex flex-col gap-5"

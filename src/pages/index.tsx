@@ -156,7 +156,7 @@ export default function PublicGallery() {
         <Navbar />
         <div className="max-w-2xl mx-auto mt-8">
           <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 sm:mx-auto">
             {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
@@ -170,9 +170,12 @@ export default function PublicGallery() {
     <>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="max-w-2xl mx-auto mt-8">
-        <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
+        <h2 className="text-2xl font-bold mb-2 mx-4 sm:mx-auto">Public Gallery</h2>
+        <p className="mb-6 mx-4 sm:mx-auto text-gray-400 text-base">
+          Discover and share your favorite moments with the SnapShare community!
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
           {images.map(img => (
             <GalleryCard
               ref={el => { cardRefs.current[img.id] = el; }}
@@ -184,11 +187,15 @@ export default function PublicGallery() {
         </div>
         <div ref={loaderRef} />
         {loadingMore && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
             {Array.from({ length: 4 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
           </div>
+        )}
+        {/* End of gallery message */}
+        {!hasMore && images.length > 0 && (
+          <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
         )}
         {images.length === 0 && <p className="mt-4 text-gray-500">No images uploaded yet.</p>}
       </div>

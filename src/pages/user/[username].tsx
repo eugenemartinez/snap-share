@@ -36,7 +36,7 @@ export default function PublicProfile({
   return (
     <>
       <Navbar />
-      <div className="max-w-md mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
+      <div className="max-w-md mx-4 sm:mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <Image
             src={user.avatar || "/avatar.png"}
@@ -59,11 +59,11 @@ export default function PublicProfile({
         {user.bio && <p className="mb-2 text-center">{user.bio}</p>}
       </div>
 
-      <div className="max-w-2xl mx-auto mt-12">
+      <div className="max-w-2xl mx-4 sm:mx-auto mb-4 mt-12">
         <h2 className="text-2xl font-bold mb-6 text-center">
           {user.username}&apos;s Gallery
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {user.images.map((img) => (
             <GalleryCard
               key={img.id}
@@ -75,6 +75,10 @@ export default function PublicProfile({
             />
           ))}
         </div>
+        {/* End of gallery message */}
+        {user.images.length > 0 && (
+          <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
+        )}
         {user.images.length === 0 && (
           <p className="mt-4 text-gray-500 text-center">
             No images uploaded yet.
