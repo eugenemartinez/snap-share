@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Spinner from "./Spinner";
 import DarkModeToggle from "./DarkModeToggle";
@@ -12,6 +12,7 @@ export default function Navbar() {
   const [loading, setLoading] = useState(false);
   const [avatar, setAvatar] = useState<string>("/avatar.png");
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (session) {
@@ -45,6 +46,18 @@ export default function Navbar() {
     return () => router.events.off("routeChangeStart", closeMenu);
   }, [router]);
 
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
+
   return (
     <>
       {loading && <Spinner />}
@@ -60,13 +73,21 @@ export default function Navbar() {
           </Link>
         </div>
         {/* Desktop menu */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-4">
           <Link href="/" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
             {/* Home/Public Gallery Icon */}
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0h-6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2z" />
             </svg>
             Public Gallery
+          </Link>
+          <Link href="/about" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
+            {/* About Icon (Info SVG) */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+            </svg>
+            About
           </Link>
           {session && (
             <Link href="/upload" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
@@ -126,7 +147,7 @@ export default function Navbar() {
           <DarkModeToggle />
         </div>
         {/* Hamburger for mobile */}
-        <div className="md:hidden flex items-center">
+        <div className="lg:hidden flex items-center">
           <button
             aria-label="Open menu"
             className="p-2 rounded hover:bg-[var(--muted)] transition"
@@ -136,9 +157,11 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h20M4 16h20" />
             </svg>
           </button>
-          {/* Mobile menu */}
           {menuOpen && (
-            <div className="absolute top-16 right-4 bg-[var(--card)] text-[var(--card-foreground)] rounded shadow-lg flex flex-col gap-2 p-4 min-w-[200px] z-50 border border-[var(--border)]">
+            <div
+              ref={menuRef}
+              className="absolute top-16 right-4 bg-[var(--card)] text-[var(--card-foreground)] rounded shadow-lg flex flex-col gap-2 p-4 min-w-[200px] z-50 border border-[var(--border)]"
+            >
               {/* Profile at the top */}
               {session && (
                 <button
@@ -178,6 +201,18 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0h-6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2z" />
                 </svg>
                 Public Gallery
+              </Link>
+              <Link
+                href="/about"
+                className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
+                onClick={() => setMenuOpen(false)}
+              >
+                {/* About Icon (Info SVG) */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+                </svg>
+                About
               </Link>
               {session && (
                 <Link
