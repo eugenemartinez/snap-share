@@ -1,0 +1,206 @@
+import { GetServerSideProps } from "next";
+import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import { PrismaClient } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import ConfirmModal from "@/components/ConfirmModal";
+import Toast from "@/components/Toast";
+
+const prisma = new PrismaClient();
+
+type ImageDetails = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  createdAt: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    avatar?: string | null;
+  };
+};
+
+export default function ImagePage({ image }: { image: ImageDetails | null }) {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(image?.title || "");
+  const [editDescription, setEditDescription] = useState(image?.description || "");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  if (!image) return <p>Image not found.</p>;
+
+  const isOwner =
+    session?.user?.email && image.user?.email && session.user.email === image.user.email;
+
+  async function handleDelete() {
+    setShowConfirm(true);
+  }
+
+  async function confirmDelete() {
+    if (!image) return;
+    setLoading(true);
+    const res = await fetch("/api/delete-image", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: image.id }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    setShowConfirm(false);
+    if (res.ok) {
+      setToast({ message: data.message || "Image deleted", type: "success" });
+      setTimeout(() => router.push("/profile"), 1200);
+    } else {
+      setToast({ message: data.message || "Failed to delete image.", type: "error" });
+    }
+  }
+
+  async function handleUpdate(
+    e: React.FormEvent,
+    id: string,
+    title: string,
+    description: string
+  ) {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/update-image", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, title, description }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (res.ok) {
+      setToast({ message: data.message || "Image updated", type: "success" });
+      setEditing(false);
+      router.replace(router.asPath); // reload data
+    } else {
+      setToast({ message: data.message || "Failed to update image.", type: "error" });
+    }
+  }
+
+  return (
+    <>
+      <Navbar />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="min-h-[85vh] flex items-center justify-center">
+        <div className="max-w-4xl w-full mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <Image
+              src={image.user.avatar || "/avatar.png"}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="rounded-full border"
+            />
+            <span className="font-semibold text-lg">@{image.user.username}</span>
+          </div>
+          <Image
+            src={image.url}
+            alt={image.title}
+            width={1200}
+            height={800}
+            className="w-full h-auto max-h-[60vh] object-contain rounded mb-4 shadow"
+            priority
+          />
+          {editing ? (
+            <form
+              onSubmit={e => handleUpdate(e, image.id, editTitle, editDescription)}
+              className="flex flex-col gap-3 mt-4"
+            >
+              <input
+                value={editTitle}
+                aria-label="Image Title"
+                onChange={e => setEditTitle(e.target.value)}
+                className="border p-2 rounded"
+                required
+                disabled={loading}
+              />
+              <textarea
+                value={editDescription}
+                aria-label="Image Description"
+                onChange={e => setEditDescription(e.target.value)}
+                className="border p-2 rounded"
+                required
+                disabled={loading}
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer"
+                  disabled={loading}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold mt-4">{image.title}</h2>
+              <p className="text-gray-700 mt-2">{image.description}</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {new Date(image.createdAt).toLocaleString()}
+              </p>
+              {isOwner && (
+                <div className="flex gap-4 mt-4">
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-blue-600 font-semibold hover:underline transition cursor-pointer"
+                    disabled={loading}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="text-red-600 font-semibold hover:underline transition cursor-pointer"
+                    disabled={loading}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      <ConfirmModal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Delete Image"
+        description="Are you sure you want to delete this image? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+    </>
+  );
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const id = context.params?.id as string;
+  const image = await prisma.image.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: { id: true, email: true, username: true, avatar: true },
+      },
+    },
+  });
+  return { props: { image: image ? JSON.parse(JSON.stringify(image)) : null } };
+};

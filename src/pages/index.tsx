@@ -1,0 +1,316 @@
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
+import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import Modal from "@/components/Modal";
+import ConfirmModal from "@/components/ConfirmModal";
+import { useSession } from "next-auth/react";
+import GalleryCard from "@/components/GalleryCard";
+import Toast from "@/components/Toast";
+import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
+
+type ImageType = {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  createdAt: string;
+  user: { id: string; email: string; username: string; avatar?: string | null };
+};
+
+export default function PublicGallery() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [images, setImages] = useState<ImageType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
+
+  // Show toast if redirected with a toast query param (e.g. after login)
+  useEffect(() => {
+    if (router.query.toast) {
+      setToast({ message: String(router.query.toast), type: "success" });
+      // Remove the toast param from the URL after showing
+      router.replace("/", undefined, { shallow: true });
+    }
+  }, [router.query.toast, router]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetch("/api/public-gallery?page=1&limit=12")
+      .then(async res => {
+        if (!res.ok) {
+          const data = await res.json();
+          setToast({ message: data.message || "Failed to load gallery.", type: "error" });
+          setImages([]);
+          setHasMore(false);
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setImages(data.images || []);
+        setHasMore(data.page < data.totalPages);
+        setLoading(false);
+      })
+      .catch(() => {
+        setToast({ message: "Network error loading gallery.", type: "error" });
+        setImages([]);
+        setHasMore(false);
+        setLoading(false);
+      });
+  }, []);
+
+  // Fetch more images when page changes
+  useEffect(() => {
+    if (page === 1) return;
+    setLoadingMore(true);
+    fetch(`/api/public-gallery?page=${page}&limit=12`)
+      .then(async res => {
+        if (!res.ok) {
+          const data = await res.json();
+          setToast({ message: data.message || "Failed to load more images.", type: "error" });
+          setLoadingMore(false);
+          return;
+        }
+        const data = await res.json();
+        setImages(prev => [...prev, ...(data.images || [])]);
+        setHasMore(page < data.totalPages);
+        setLoadingMore(false);
+      })
+      .catch(() => {
+        setToast({ message: "Network error loading more images.", type: "error" });
+        setLoadingMore(false);
+      });
+  }, [page]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (!hasMore || loadingMore) return;
+    const currentLoader = loaderRef.current;
+    const observer = new window.IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          setPage(p => p + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+    if (currentLoader) observer.observe(currentLoader);
+    return () => {
+      if (currentLoader) observer.unobserve(currentLoader);
+    };
+  }, [hasMore, loadingMore]);
+
+  async function handleDelete(id: string) {
+    setLoading(true);
+    const res = await fetch("/api/delete-image", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (res.ok) {
+      setImages(images => images.filter(img => img.id !== id));
+      setSelectedImage(null);
+      setToast({ message: data.message || "Image deleted", type: "success" });
+    } else {
+      setToast({ message: data.message || "Failed to delete image.", type: "error" });
+    }
+  }
+
+  async function handleUpdate(id: string, title: string, description: string) {
+    setLoading(true);
+    const res = await fetch("/api/update-image", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, title, description }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (res.ok) {
+      setImages(images => images.map(img => img.id === id ? { ...img, title, description } : img));
+      setEditingId(null);
+      setSelectedImage(img => img && img.id === id ? { ...img, title, description } : img);
+      setToast({ message: data.message || "Image updated", type: "success" });
+    } else {
+      setToast({ message: data.message || "Failed to update image.", type: "error" });
+    }
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="max-w-2xl mx-auto mt-8">
+          <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <GalleryCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Navbar />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="max-w-2xl mx-auto mt-8">
+        <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {images.map(img => (
+            <GalleryCard
+              key={img.id}
+              image={img}
+              onClick={() => setSelectedImage(img)}
+            />
+          ))}
+        </div>
+        <div ref={loaderRef} />
+        {loadingMore && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <GalleryCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
+        {images.length === 0 && <p className="mt-4 text-gray-500">No images uploaded yet.</p>}
+      </div>
+
+      <Modal open={!!selectedImage} onClose={() => setSelectedImage(null)} size="2xl">
+        {selectedImage && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span
+                onClick={() => router.push(`/user/${selectedImage.user.username}`)}
+                tabIndex={0}
+                role="button"
+                aria-label={`Go to @${selectedImage.user.username}'s profile`}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    router.push(`/user/${selectedImage.user.username}`);
+                  }
+                }}
+                className="flex items-center gap-2 cursor-pointer group outline-none"
+              >
+                <Image
+                  src={selectedImage.user.avatar || "/avatar.png"}
+                  alt="User Avatar"
+                  width={32}
+                  height={32}
+                  className="rounded-full border group-hover:ring-2 group-hover:ring-blue-400 transition"
+                />
+                <span className="font-semibold text-blue-600 group-hover:underline">
+                  @{selectedImage.user.username}
+                </span>
+              </span>
+            </div>
+            <Image
+              src={selectedImage.url}
+              alt={selectedImage.title}
+              width={500}
+              height={300}
+              className="w-full h-auto rounded"
+              priority={false}
+            />
+            <h2 className="text-xl font-bold mt-4">{selectedImage.title}</h2>
+            <p className="text-gray-600">{selectedImage.description}</p>
+            <p className="text-xs text-gray-400 mt-2">
+              {new Date(selectedImage.createdAt).toLocaleString()}
+            </p>
+            {session?.user?.email === selectedImage.user.email && (
+              <div className="flex flex-col gap-2 mt-4">
+                {editingId === selectedImage.id ? (
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      handleUpdate(selectedImage.id, editTitle, editDescription);
+                    }}
+                    className="flex flex-col gap-2"
+                  >
+                    <input
+                      value={editTitle}
+                      aria-label="Edit title"
+                      onChange={e => setEditTitle(e.target.value)}
+                      className="border p-1"
+                    />
+                    <textarea
+                      value={editDescription}
+                      aria-label="Edit description"
+                      onChange={e => setEditDescription(e.target.value)}
+                      className="border p-1"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingId(selectedImage.id);
+                        setEditTitle(selectedImage.title);
+                        setEditDescription(selectedImage.description);
+                      }}
+                      className="text-blue-500 hover:underline cursor-pointer transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteId(selectedImage.id);
+                        setShowConfirm(true);
+                      }}
+                      className="text-red-500 hover:underline cursor-pointer transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <ConfirmModal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() => {
+          if (deleteId) handleDelete(deleteId);
+          setShowConfirm(false);
+          setDeleteId(null);
+        }}
+        title="Delete Image"
+        description="Are you sure you want to delete this image? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+    </>
+  );
+}
