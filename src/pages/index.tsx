@@ -163,6 +163,7 @@ export default function PublicGallery() {
               key={img.id}
               image={img}
               onClick={() => setSelectedImage(img)}
+              setToast={setToast}
             />
           ))}
         </div>
@@ -235,6 +236,7 @@ export default function PublicGallery() {
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}
+                  setToast={setToast}
                 />
               </span>
             </div>

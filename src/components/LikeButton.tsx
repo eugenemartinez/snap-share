@@ -5,16 +5,16 @@ import LoginModal from "@/components/LoginModal";
 type LikeButtonProps = {
     imageId: string;
     onLike?: () => void;
+    setToast?: (toast: { message: string; type: "success" | "error" }) => void; // Add this prop
 };
 
-const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ imageId, onLike }, ref) => {
+const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ imageId, onLike, setToast }, ref) => {
   const { status } = useSession();
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  // Use useCallback for a stable function reference
   const fetchLikeState = useCallback(() => {
     fetch(`/api/images/${imageId}/like`)
       .then(res => res.json())
@@ -44,6 +44,18 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
       setLiked(!liked);
       setCount(c => c + (liked ? -1 : 1));
       if (onLike) onLike();
+      if (setToast) {
+        setToast({
+          message: liked ? "Unliked successfully." : "Liked successfully.",
+          type: "success",
+        });
+      }
+    } else {
+      // Handle like limit error
+      if (res.status === 403 && setToast) {
+        const data = await res.json();
+        setToast({ message: data.message || "Like limit reached.", type: "error" });
+      }
     }
     setLoading(false);
   }

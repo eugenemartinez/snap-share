@@ -297,6 +297,7 @@ export default function ProfilePage() {
               ref={el => { cardRefs.current[img.id] = el; }}
               image={img}
               onClick={() => setSelectedImage(img)}
+              setToast={setToast}
             />
           ))}
         </div>
@@ -350,6 +351,7 @@ export default function ProfilePage() {
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}
+                  setToast={setToast}
                 />
               </span>
             </div>

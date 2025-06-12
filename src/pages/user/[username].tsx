@@ -9,6 +9,7 @@ import LikeButton from "@/components/LikeButton";
 import FollowButton from "@/components/FollowButton";
 import { useSession } from "next-auth/react";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
+import Toast from "@/components/Toast";
 
 const prisma = new PrismaClient();
 
@@ -17,7 +18,6 @@ type UserProfile = {
   username: string;
   avatar?: string | null;
   bio?: string | null;
-  // Remove images from here, we'll fetch them client-side
 };
 
 type ImageType = {
@@ -44,6 +44,7 @@ export default function PublicProfile({
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
 
   useEffect(() => {
@@ -73,6 +74,13 @@ export default function PublicProfile({
   return (
     <>
       <Navbar />
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="max-w-md mx-4 sm:mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
         <div className="flex flex-col items-center mb-4">
           <Image
@@ -89,6 +97,7 @@ export default function PublicProfile({
                 username={user.username}
                 initialFollowing={followData.following}
                 initialCount={followData.count}
+                setToast={setToast}
               />
             </div>
           )}
@@ -109,6 +118,7 @@ export default function PublicProfile({
               }}
               image={img}
               onClick={() => setSelectedImage(img)}
+              setToast={setToast}
             />
           ))}
         </div>
@@ -166,6 +176,7 @@ export default function PublicProfile({
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}
+                  setToast={setToast}
                 />
               </span>
             </div>

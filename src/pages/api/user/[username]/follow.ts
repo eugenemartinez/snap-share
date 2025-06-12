@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
+const FOLLOW_LIMIT = 5000;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
 
@@ -21,6 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "POST") {
     if (!user) return res.status(401).json({ message: "Unauthorized" });
     if (user.id === targetUser.id) return res.status(400).json({ message: "Cannot follow yourself" });
+
+    // Enforce follow table limit
+    const followCount = await prisma.follow.count();
+    if (followCount >= FOLLOW_LIMIT) {
+      return res.status(403).json({ message: "Follow limit reached. No more follows allowed." });
+    }
+
     await prisma.follow.upsert({
       where: { followerId_followingId: { followerId: user.id, followingId: targetUser.id } },
       update: {},

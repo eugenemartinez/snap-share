@@ -9,17 +9,17 @@ export type GalleryCardProps = {
     title: string;
     description: string;
     createdAt: string | Date;
-    // Optionally, add user info if needed for avatar/username
   };
   onClick?: () => void;
   children?: React.ReactNode;
+  setToast?: (toast: { message: string; type: "success" | "error" }) => void;
 };
 
 export type GalleryCardHandle = {
   refetchLikeState: () => void;
 };
 
-const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, onClick, children }, ref) => {
+const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, onClick, children, setToast }, ref) => {
   const likeButtonRef = useRef<{ refetch: () => void }>(null);
 
   useImperativeHandle(ref, () => ({
@@ -65,7 +65,7 @@ const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, on
             onKeyDown={e => e.stopPropagation()}
             tabIndex={-1}
           >
-            <LikeButton ref={likeButtonRef} imageId={image.id} />
+            <LikeButton ref={likeButtonRef} imageId={image.id} setToast={setToast} />
           </span>
         </div>
         <p className="text-xs text-[var(--muted-foreground,#9ca3af)] mt-auto">

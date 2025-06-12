@@ -36,7 +36,7 @@ model Image {
   title       String
   description String
   url         String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   createdAt   DateTime @default(now())
 
@@ -48,9 +48,9 @@ model Image {
 
 model ImageLike {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  image     Image    @relation(fields: [imageId], references: [id])
+  image     Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
   imageId   String
   createdAt DateTime @default(now())
 
@@ -60,9 +60,9 @@ model ImageLike {
 
 model Follow {
   id          String   @id @default(uuid())
-  follower    User     @relation("follower", fields: [followerId], references: [id])
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
   followerId  String
-  following   User     @relation("following", fields: [followingId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
   followingId String
   createdAt   DateTime @default(now())
 

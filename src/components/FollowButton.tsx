@@ -5,10 +5,12 @@ export default function FollowButton({
   username,
   initialFollowing,
   initialCount,
+  setToast,
 }: {
   username: string;
   initialFollowing: boolean;
   initialCount: number;
+  setToast?: (toast: { message: string; type: "success" | "error" }) => void;
 }) {
   const { status } = useSession();
   const [following, setFollowing] = useState(initialFollowing);
@@ -26,6 +28,18 @@ export default function FollowButton({
     if (res.ok) {
       setFollowing(!following);
       setCount((c) => c + (following ? -1 : 1));
+      if (setToast) {
+        setToast({
+          message: following ? "Unfollowed successfully." : "Followed successfully.",
+          type: "success",
+        });
+      }
+    } else {
+      // Handle follow limit error
+      if (res.status === 403 && setToast) {
+        const data = await res.json();
+        setToast({ message: data.message || "Follow limit reached.", type: "error" });
+      }
     }
     setLoading(false);
   }

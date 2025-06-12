@@ -123,7 +123,10 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
               </p>
             </div>
             <span className="ml-2">
-              <LikeButton imageId={image.id} />
+              <LikeButton 
+              imageId={image.id}
+              setToast={setToast}
+               />
             </span>
           </div>
           {editing ? (

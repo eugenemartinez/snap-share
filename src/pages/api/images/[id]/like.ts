@@ -4,6 +4,7 @@ import { authOptions } from "../../auth/[...nextauth]";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const LIKE_LIMIT = 5000;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only require auth for POST and DELETE
@@ -23,6 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
+    // Enforce like table limit
+    const likeCount = await prisma.imageLike.count();
+    if (likeCount >= LIKE_LIMIT) {
+      return res.status(403).json({ message: "Like limit reached. No more likes allowed." });
+    }
     // Like image
     await prisma.imageLike.upsert({
       where: { userId_imageId: { userId: user!.id, imageId } },

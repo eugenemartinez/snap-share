@@ -15,7 +15,7 @@ export default function Toast({
   }, [onClose]);
   return (
     <div
-      className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg font-semibold
+      className={`fixed top-6 left-1/2 -translate-x-1/2 z-51 px-6 py-3 rounded-lg shadow-lg font-semibold
         ${
           type === "error"
             ? "bg-[#ef4444] text-white border border-[#b91c1c]"
