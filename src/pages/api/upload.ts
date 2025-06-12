@@ -42,10 +42,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(403).json({ message: "Image limit reached. No more uploads allowed." });
   }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  fs.mkdirSync(uploadDir, { recursive: true });
+  // Only create uploadDir if not using blob storage
+  let uploadDir: string | undefined = undefined;
+  if (process.env.USE_BLOB_STORAGE !== "true") {
+    uploadDir = path.join(process.cwd(), "public", "uploads");
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
 
-  const form = formidable({ multiples: false, uploadDir, keepExtensions: true });
+  const form = formidable({
+    multiples: false,
+    uploadDir: uploadDir || "/tmp", // fallback to /tmp for serverless
+    keepExtensions: true,
+  });
 
   form.parse(req, async (err, fields: Record<string, unknown>, files) => {
     if (err) return res.status(500).json({ message: "Upload error" });
