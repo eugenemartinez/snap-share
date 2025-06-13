@@ -6,6 +6,7 @@ import Toast from "@/components/Toast";
 import ErrorMessage from "@/components/ErrorMessage";
 import Button from "@/components/Button";
 import Head from "next/head";
+import Link from "next/link";
 
 export default function Register() {
   const { status } = useSession();
@@ -16,7 +17,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [loading, setLoading] = useState(false); // <-- Add loading state
+  const [loading, setLoading] = useState(false); 
 
   // Don't render anything until session is loaded
   if (status === "loading") return null;
@@ -46,14 +47,14 @@ export default function Register() {
       return;
     }
 
-    setLoading(true); // <-- Start loading
+    setLoading(true);
     // API call
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, username, password }),
     });
-    setLoading(false); // <-- End loading
+    setLoading(false); 
     if (res.ok) {
       setToast({ message: "Registration successful! Redirecting to login...", type: "success" });
       setTimeout(() => router.push("/login"), 1500);
@@ -118,6 +119,15 @@ export default function Register() {
           >
             Sign Up
           </Button>
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-blue-600 hover:underline"
+            >
+              Click here to login
+            </Link>
+          </div>
         </form>
       </div>
     </>

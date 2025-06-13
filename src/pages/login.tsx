@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Button from "@/components/Button";
 import Head from "next/head";
+import Link from "next/link";
 
 export default function Login() {
   const { status } = useSession();
@@ -87,6 +88,15 @@ export default function Login() {
           >
             Sign In
           </Button>
+          <div className="mt-4 text-center text-sm">
+            Not registered?{" "}
+            <Link
+              href="/register"
+              className="text-blue-600 hover:underline"
+            >
+              Click here to register
+            </Link>
+          </div>
         </form>
       </div>
     </>
