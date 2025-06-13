@@ -10,6 +10,7 @@ import Toast from "@/components/Toast";
 import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 const prisma = new PrismaClient();
 
@@ -91,6 +92,21 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
 
   return (
     <>
+      <Head>
+        <title>
+          {image
+            ? `${image.title} by @${image.user.username} | SnapShare`
+            : "Image Not Found | SnapShare"}
+        </title>
+        <meta
+          name="description"
+          content={
+            image
+              ? `${image.title} - ${image.description} | View this image by @${image.user.username} on SnapShare.`
+              : "Image not found on SnapShare."
+          }
+        />
+      </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center">

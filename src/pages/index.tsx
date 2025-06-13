@@ -11,6 +11,7 @@ import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 type ImageType = {
   id: string;
@@ -150,6 +151,9 @@ export default function PublicGallery() {
 
   return (
     <>
+    <Head>
+        <title>Home | SnapShare</title>
+    </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">

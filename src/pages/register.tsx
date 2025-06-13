@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import ErrorMessage from "@/components/ErrorMessage";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 export default function Register() {
   const { status } = useSession();
@@ -64,6 +65,9 @@ export default function Register() {
 
   return (
     <>
+    <Head>
+        <title>Register | SnapShare</title>
+    </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center mx-4 sm:mx-auto">

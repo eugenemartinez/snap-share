@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import Toast from "@/components/Toast";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 const prisma = new PrismaClient();
 
@@ -74,6 +75,19 @@ export default function PublicProfile({
   if (!user) return <p>User not found.</p>;
   return (
     <>
+      <Head>
+        <title>
+          {user ? `${user.username}'s Profile | SnapShare` : "User Not Found | SnapShare"}
+        </title>
+        <meta
+          name="description"
+          content={
+            user
+              ? `View @${user.username}'s public profile and gallery on SnapShare.`
+              : "User not found on SnapShare."
+          }
+        />
+      </Head>
       <Navbar />
       {toast && (
         <Toast

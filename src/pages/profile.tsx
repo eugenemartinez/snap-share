@@ -11,6 +11,7 @@ import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import ProfileSectionSkeleton from "@/components/ProfileSectionSkeleton";
 import LikeButton from "@/components/LikeButton";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 type Profile = {
   email: string;
@@ -226,6 +227,9 @@ export default function ProfilePage() {
 
   return (
     <>
+    <Head>
+        <title>My Profile | SnapShare</title>
+    </Head>
       <Navbar ref={navbarRef} />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="max-w-md mx-4 sm:mx-auto mt-8 p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
@@ -334,7 +338,7 @@ export default function ProfilePage() {
           <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
         )}
         {images.length === 0 && !loadingMore && (
-          <p className="mt-4 text-gray-500 text-center">No images uploaded yet.</p>
+          <p className="mt-4 mx-4 text-gray-500 text-center">No images uploaded yet.</p>
         )}
       </div>
 

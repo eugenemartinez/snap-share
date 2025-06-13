@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Image from "next/image";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -79,6 +80,9 @@ export default function Upload() {
 
   return (
     <>
+    <Head>
+        <title>Upload | SnapShare</title>
+    </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[calc(85vh-56px)] flex items-center justify-center mx-4 sm:mx-auto">

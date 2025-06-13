@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Button from "@/components/Button";
+import Head from "next/head";
 
 export default function Login() {
   const { status } = useSession();
@@ -52,6 +53,9 @@ export default function Login() {
 
   return (
     <>
+    <Head>
+        <title>Login | SnapShare</title>
+    </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center mx-4 sm:mx-auto">
