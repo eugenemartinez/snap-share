@@ -9,6 +9,8 @@ export type GalleryCardProps = {
     title: string;
     description: string;
     createdAt: string | Date;
+    liked: boolean;
+    likeCount: number; 
   };
   onClick?: () => void;
   children?: React.ReactNode;
@@ -65,7 +67,13 @@ const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, on
             onKeyDown={e => e.stopPropagation()}
             tabIndex={-1}
           >
-            <LikeButton ref={likeButtonRef} imageId={image.id} setToast={setToast} />
+            <LikeButton
+              ref={likeButtonRef}
+              imageId={image.id}
+              initialLiked={image.liked}
+              initialCount={image.likeCount}
+              setToast={setToast}
+            />
           </span>
         </div>
         <p className="text-xs text-[var(--muted-foreground,#9ca3af)] mt-auto">

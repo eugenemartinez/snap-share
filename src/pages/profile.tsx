@@ -26,6 +26,8 @@ type ImageType = {
   description: string;
   url: string;
   createdAt: string;
+  likeCount: number;
+  liked: boolean;
 };
 
 export default function ProfilePage() {
@@ -365,6 +367,8 @@ export default function ProfilePage() {
               <div className="flex flex-col items-end gap-2 ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
+                  initialLiked={selectedImage.liked}
+                  initialCount={selectedImage.likeCount}
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState?.();
                   }}

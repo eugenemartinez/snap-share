@@ -28,6 +28,8 @@ type ImageType = {
   description: string;
   url: string;
   createdAt: string;
+  likeCount: number;
+  liked: boolean;
 };
 
 export default function PublicProfile({
@@ -191,6 +193,8 @@ export default function PublicProfile({
               <span className="ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
+                  initialLiked={selectedImage.liked}
+                  initialCount={selectedImage.likeCount}
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}

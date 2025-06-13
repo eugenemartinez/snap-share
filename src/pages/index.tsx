@@ -20,6 +20,8 @@ type ImageType = {
   url: string;
   createdAt: string;
   user: { id: string; email: string; username: string; avatar?: string | null };
+  likeCount: number;
+  liked: boolean;
 };
 
 export default function PublicGallery() {
@@ -228,6 +230,8 @@ export default function PublicGallery() {
               <div className="flex flex-col items-end gap-2 ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
+                  initialLiked={selectedImage.liked}
+                  initialCount={selectedImage.likeCount}
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}

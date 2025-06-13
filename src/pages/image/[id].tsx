@@ -11,6 +11,8 @@ import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
 import Button from "@/components/Button";
 import Head from "next/head";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../api/auth/[...nextauth]";
 
 const prisma = new PrismaClient();
 
@@ -26,6 +28,8 @@ type ImageDetails = {
     username: string;
     avatar?: string | null;
   };
+  likeCount: number;
+  liked: boolean;
 };
 
 export default function ImagePage({ image }: { image: ImageDetails | null }) {
@@ -140,7 +144,12 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 ml-2">
-              <LikeButton imageId={image.id} setToast={setToast} />
+                <LikeButton
+                imageId={image.id}
+                initialLiked={image.liked}
+                initialCount={image.likeCount}
+                setToast={setToast}
+              />
               {isOwner && !editing && (
                 <div className="flex gap-2 mt-2">
                   <Button
@@ -219,6 +228,7 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const id = context.params?.id as string;
+
   const image = await prisma.image.findUnique({
     where: { id },
     include: {
@@ -232,5 +242,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return { notFound: true };
   }
 
-  return { props: { image: JSON.parse(JSON.stringify(image)) } };
+  // Fetch like count and liked state
+  const likeCount = await prisma.imageLike.count({ where: { imageId: id } });
+
+  // Get user session (if using next-auth)
+  let liked = false;
+  const session = await getServerSession(context.req, context.res, authOptions); // adjust as needed
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
+    if (user) {
+      liked = !!(await prisma.imageLike.findUnique({
+        where: { userId_imageId: { userId: user.id, imageId: id } },
+      }));
+    }
+  }
+
+  return {
+    props: {
+      image: {
+        ...JSON.parse(JSON.stringify(image)),
+        likeCount,
+        liked,
+      },
+    },
+  };
 };
