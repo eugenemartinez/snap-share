@@ -1,6 +1,7 @@
 import Button from "@/components/Button";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import LoginModal from "@/components/LoginModal";
 
 export default function FollowButton({
   username,
@@ -17,10 +18,11 @@ export default function FollowButton({
   const [following, setFollowing] = useState(initialFollowing);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   async function toggleFollow() {
     if (status !== "authenticated") {
-      // Optionally show login modal
+      setShowLogin(true); 
       return;
     }
     setLoading(true);
@@ -58,6 +60,7 @@ export default function FollowButton({
       >
         {following ? "Unfollow" : "Follow"}
       </Button>
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
 }
