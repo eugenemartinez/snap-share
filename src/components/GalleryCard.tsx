@@ -17,23 +17,15 @@ export type GalleryCardProps = {
 
 export type GalleryCardHandle = {
   refetchLikeState: () => void;
-  getLiked: () => boolean;
-  getLikeCount: () => number;
 };
 
 const GalleryCard = forwardRef<GalleryCardHandle, GalleryCardProps>(({ image, onClick, children, setToast }, ref) => {
-  const likeButtonRef = useRef<{
-    refetch: () => void;
-    getLiked: () => boolean;
-    getLikeCount: () => number;
-  }>(null);
+  const likeButtonRef = useRef<{ refetch: () => void }>(null);
 
   useImperativeHandle(ref, () => ({
     refetchLikeState: () => {
       likeButtonRef.current?.refetch();
     },
-    getLiked: () => likeButtonRef.current?.getLiked?.() ?? false,
-    getLikeCount: () => likeButtonRef.current?.getLikeCount?.() ?? 0,
   }));
 
   return (

@@ -7,8 +7,6 @@ type LikeButtonProps = {
     imageId: string;
     onLike?: () => void;
     setToast?: (toast: { message: string; type: "success" | "error" }) => void;
-    initialLiked?: boolean;
-    initialCount?: number;
 };
 
 const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ imageId, onLike, setToast }, ref) => {
