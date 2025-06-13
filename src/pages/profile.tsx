@@ -96,7 +96,6 @@ export default function ProfilePage() {
     }
   }, [status, profile?.username]);
 
-  // Infinite scroll: fetch more images when page changes
   useEffect(() => {
     if (page === 1) return;
     setLoadingMore(true);
@@ -210,11 +209,9 @@ export default function ProfilePage() {
   if (status === "loading" || status === "unauthenticated") return null;
 
   if (!profile) {
-    // Show a skeleton, loading, or error state
     return <ProfileSectionSkeleton />;
   }
 
-  // Now it's safe to use profile
   return (
     <>
     <Head>
