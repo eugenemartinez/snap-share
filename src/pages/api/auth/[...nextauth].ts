@@ -25,7 +25,8 @@ export const authOptions: NextAuthOptions = {
 
         const { limited } = rateLimit(loginRateLimitStore, ip, LOGIN_LIMIT, LOGIN_WINDOW);
         if (limited) {
-          throw new Error("Too many login attempts. Try again later.");
+          // Throw a unique error string for rate limit
+          throw new Error("RATE_LIMIT");
         }
 
         if (!credentials?.identifier || !credentials?.password) return null;

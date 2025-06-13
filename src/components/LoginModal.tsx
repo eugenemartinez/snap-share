@@ -13,23 +13,22 @@ export default function LoginModal({
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     const res = await signIn("credentials", {
       redirect: false,
       identifier,
       password,
     });
     setLoading(false);
-    if (res?.ok) {
+    if (res?.error === "RATE_LIMIT") {
+      setToast?.({ message: "Too many login attempts. Try again later.", type: "error" });
+    } else if (res?.ok) {
       onClose();
       setToast?.({ message: "Login successful!", type: "success" });
     } else {
-      setError("Invalid credentials");
       setToast?.({ message: "Invalid credentials", type: "error" });
     }
   }
@@ -63,7 +62,6 @@ export default function LoginModal({
             required
             className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
-          {error && <div className="text-red-500 text-sm">{error}</div>}
           <Button
             type="submit"
             loading={loading}

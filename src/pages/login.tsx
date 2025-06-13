@@ -9,10 +9,10 @@ import Link from "next/link";
 
 export default function Login() {
   const { status } = useSession();
-  const [identifier, setIdentifier] = useState(""); // email or username
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const [loading, setLoading] = useState(false); // <-- Add loading state
+  const [loading, setLoading] = useState(false); 
   const router = useRouter();
 
   useEffect(() => {
@@ -22,7 +22,6 @@ export default function Login() {
     }
   }, [router.query.toast, router]);
 
-  // Don't render anything until session is loaded
   if (status === "loading") return null;
   if (status === "authenticated") {
     if (typeof window !== "undefined") router.replace("/");
@@ -35,14 +34,16 @@ export default function Login() {
       setToast({ message: "Please enter your email/username and password.", type: "error" });
       return;
     }
-    setLoading(true); // <-- Start loading
+    setLoading(true);
     const res = await signIn("credentials", {
       redirect: false,
       identifier,
       password,
     });
-    setLoading(false); // <-- End loading
-    if (res?.ok) {
+    setLoading(false);
+    if (res?.error === "RATE_LIMIT") {
+      setToast({ message: "Too many login attempts. Try again later.", type: "error" });
+    } else if (res?.ok) {
       router.push({
         pathname: "/",
         query: { toast: "Login successful!" }
@@ -54,9 +55,9 @@ export default function Login() {
 
   return (
     <>
-    <Head>
+      <Head>
         <title>Login | SnapShare</title>
-    </Head>
+      </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center mx-4 sm:mx-auto">
