@@ -38,13 +38,14 @@ export default function PublicGallery() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   // Show toast if redirected with a toast query param (e.g. after login)
   useEffect(() => {
     if (router.query.toast) {
       setToast({ message: String(router.query.toast), type: "success" });
       // Remove the toast param from the URL after showing
-      router.replace("/", undefined, { shallow: true });
+      router.replace(router.pathname, undefined, { shallow: true });
     }
   }, [router.query.toast, router]);
 
@@ -115,14 +116,14 @@ export default function PublicGallery() {
   }
 
   async function handleUpdate(id: string, title: string, description: string) {
-    setLoading(true);
+    setUpdateLoading(true);
     const res = await fetch("/api/update-image", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, title, description }),
     });
     const data = await res.json();
-    setLoading(false);
+    setUpdateLoading(false);
     if (res.ok) {
       setImages(images => images.map(img => img.id === id ? { ...img, title, description } : img));
       setEditingId(null);
@@ -133,47 +134,33 @@ export default function PublicGallery() {
     }
   }
 
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
-          <h2 className="text-2xl font-bold mb-4">Public Gallery</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <GalleryCardSkeleton key={i} />
-            ))}
-          </div>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
-    <Head>
+      <Head>
         <title>Home | SnapShare</title>
-    </Head>
+      </Head>
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
+      <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
         <h2 className="text-2xl font-bold mb-2 mx-4 sm:mx-auto">Public Gallery</h2>
         <p className="mb-6 mx-4 sm:mx-auto text-gray-400 text-base">
           Discover and share your favorite moments with the SnapShare community!
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
-          {images.map(img => (
-            <GalleryCard
-              ref={el => { cardRefs.current[img.id] = el; }}
-              key={img.id}
-              image={img}
-              onClick={() => setSelectedImage(img)}
-              setToast={setToast}
-            />
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <GalleryCardSkeleton key={i} />)
+            : images.map(img => (
+                <GalleryCard
+                  ref={el => { cardRefs.current[img.id] = el; }}
+                  key={img.id}
+                  image={img}
+                  onClick={() => setSelectedImage(img)}
+                  setToast={setToast}
+                />
+              ))}
         </div>
         {/* Load More button */}
-        {hasMore && !loadingMore && (
+        {hasMore && !loadingMore && !loading && (
           <div className="flex justify-center my-6">
             <Button
               onClick={() => setPage(p => p + 1)}
@@ -194,10 +181,10 @@ export default function PublicGallery() {
           </div>
         )}
         {/* End of gallery message */}
-        {!hasMore && images.length > 0 && (
+        {!hasMore && images.length > 0 && !loading && (
           <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
         )}
-        {images.length === 0 && <p className="mt-4 text-gray-500">No images uploaded yet.</p>}
+        {images.length === 0 && !loading && <p className="mt-4 text-gray-500">No images uploaded yet.</p>}
       </div>
 
       <Modal open={!!selectedImage} onClose={() => setSelectedImage(null)} size="2xl">
@@ -297,7 +284,7 @@ export default function PublicGallery() {
                 <div className="flex gap-2">
                   <Button
                     type="submit"
-                    loading={loading}
+                    loading={updateLoading}
                     variant="primary"
                   >
                     Save
