@@ -2,6 +2,7 @@ import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import "@/styles/globals.css";
+import { AvatarProvider } from "@/context/AvatarContext";
 
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
@@ -11,7 +12,9 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <meta name="description" content="SnapShare - Share your moments with the world!" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Component {...pageProps} />
+      <AvatarProvider>
+        <Component {...pageProps} />
+      </AvatarProvider>
     </SessionProvider>
   );
 }

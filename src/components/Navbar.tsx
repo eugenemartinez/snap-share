@@ -7,6 +7,7 @@ import Spinner from "./Spinner";
 import DarkModeToggle from "./DarkModeToggle";
 import Button from "@/components/Button";
 import { FaHome, FaInfoCircle, FaUpload, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaBars } from "react-icons/fa";
+import { useAvatar } from "@/context/AvatarContext";
 
 export type NavbarHandle = {
   refetchAvatar: () => void;
@@ -15,8 +16,8 @@ export type NavbarHandle = {
 const Navbar = forwardRef(function Navbar(props, ref) {
   const { data: session } = useSession();
   const router = useRouter();
+  const { avatar, setAvatar } = useAvatar(); // <-- use context here
   const [loading, setLoading] = useState(false);
-  const [avatar, setAvatar] = useState<string>("/avatar.png");
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -35,7 +36,7 @@ const Navbar = forwardRef(function Navbar(props, ref) {
         })
         .catch(() => setAvatar("/avatar.png"));
     }
-  }, [session]);
+  }, [session, setAvatar]);
 
   // Expose refetchAvatar to parent via ref
   useImperativeHandle(ref, () => ({
