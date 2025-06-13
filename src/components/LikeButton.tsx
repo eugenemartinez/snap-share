@@ -1,7 +1,8 @@
-import React, { useImperativeHandle, useState, useEffect, forwardRef, useCallback } from "react";
+import React, { useImperativeHandle, useState, useEffect, forwardRef } from "react";
 import { useSession } from "next-auth/react";
 import LoginModal from "@/components/LoginModal";
 import { FaHeart, FaRegHeart, FaSpinner } from "react-icons/fa";
+import { useLike } from "@/context/LikeContext";
 
 type LikeButtonProps = {
     imageId: string;
@@ -14,34 +15,41 @@ type LikeButtonProps = {
 const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
   ({ imageId, initialLiked, initialCount, onLike, setToast }, ref) => {
     const { status } = useSession();
-    const [liked, setLiked] = useState(initialLiked);
-    const [count, setCount] = useState(initialCount);
+    const { likes, setLike, fetchLikeIfNeeded } = useLike();
+    const contextLike = likes[imageId];
+
+    // Use context state if available, otherwise props
+    const [liked, setLiked] = useState(contextLike?.liked ?? initialLiked);
+    const [count, setCount] = useState(contextLike?.count ?? initialCount);
     const [loading, setLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
-    const [initializing, setInitializing] = useState(false);
+    const [initializing, setInitializing] = useState(!contextLike);
 
     const isButtonLoading = loading || initializing;
 
-    const fetchLikeState = useCallback(() => {
-      setInitializing(true);
-      fetch(`/api/images/${imageId}/like`)
-        .then(res => res.json())
-        .then(data => {
-          setLiked(data.liked);
-          setCount(data.count);
-        })
-        .finally(() => setInitializing(false));
+    // Sync local state with context if it changes
+    useEffect(() => {
+      if (contextLike) {
+        setLiked(contextLike.liked);
+        setCount(contextLike.count);
+        setInitializing(false);
+      }
+    }, [contextLike]);
+
+    // Only fetch if not already in context
+    useEffect(() => {
+      if (!contextLike) {
+        setInitializing(true);
+        fetchLikeIfNeeded(imageId).finally(() => setInitializing(false));
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imageId]);
 
     useImperativeHandle(ref, () => ({
-      refetch: fetchLikeState,
+      refetch: () => fetchLikeIfNeeded(imageId),
       getLiked: () => liked,
       getLikeCount: () => count,
     }));
-
-    useEffect(() => {
-      fetchLikeState();
-    }, [fetchLikeState]);
 
     async function toggleLike() {
       if (status !== "authenticated") {
@@ -52,8 +60,11 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       const method = liked ? "DELETE" : "POST";
       const res = await fetch(`/api/images/${imageId}/like`, { method });
       if (res.ok) {
-        setLiked(!liked);
-        setCount(c => c + (liked ? -1 : 1));
+        const newLiked = !liked;
+        const newCount = count + (liked ? -1 : 1);
+        setLiked(newLiked);
+        setCount(newCount);
+        setLike(imageId, newLiked, newCount); // update context
         if (onLike) onLike();
         if (setToast) {
           setToast({

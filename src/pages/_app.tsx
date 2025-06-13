@@ -3,6 +3,7 @@ import type { AppProps } from "next/app";
 import Head from "next/head";
 import "@/styles/globals.css";
 import { AvatarProvider } from "@/context/AvatarContext";
+import { LikeProvider } from "@/context/LikeContext";
 
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
@@ -13,7 +14,9 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <AvatarProvider>
-        <Component {...pageProps} />
+        <LikeProvider>
+          <Component {...pageProps} />
+        </LikeProvider>
       </AvatarProvider>
     </SessionProvider>
   );
