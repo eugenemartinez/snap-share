@@ -1,11 +1,12 @@
 import React, { useImperativeHandle, useState, useEffect, forwardRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import LoginModal from "@/components/LoginModal";
+import { FaHeart, FaRegHeart, FaSpinner } from "react-icons/fa";
 
 type LikeButtonProps = {
     imageId: string;
     onLike?: () => void;
-    setToast?: (toast: { message: string; type: "success" | "error" }) => void; // Add this prop
+    setToast?: (toast: { message: string; type: "success" | "error" }) => void;
 };
 
 const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ imageId, onLike, setToast }, ref) => {
@@ -14,6 +15,7 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
   const fetchLikeState = useCallback(() => {
     fetch(`/api/images/${imageId}/like`)
@@ -21,7 +23,8 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
       .then(data => {
         setLiked(data.liked);
         setCount(data.count);
-      });
+      })
+      .finally(() => setInitializing(false));
   }, [imageId]);
 
   useImperativeHandle(ref, () => ({
@@ -66,23 +69,17 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
         <button
           onClick={toggleLike}
           disabled={loading}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/60 dark:text-red-200 dark:hover:bg-red-800/80 cursor-pointer"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/60 dark:text-red-200 dark:hover:bg-red-800/80 cursor-pointer disabled:opacity-60"
           aria-pressed="true"
           aria-label="Unlike image"
           type="button"
         >
-          <svg
-            className="w-5 h-5 fill-red-500"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path
-              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-            />
-          </svg>
-          <span>{count}</span>
+          {loading ? (
+            <FaSpinner className="w-5 h-5 animate-spin" />
+          ) : (
+            <FaHeart className="w-5 h-5 fill-red-500" />
+          )}
+          {!initializing && <span>{count}</span>}
         </button>
         {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
       </>
@@ -94,23 +91,17 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
       <button
         onClick={toggleLike}
         disabled={loading}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-gray-100 text-gray-500 hover:bg-red-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-red-800/80 cursor-pointer"
+        className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-gray-100 text-gray-500 hover:bg-red-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-red-800/80 cursor-pointer disabled:opacity-60"
         aria-pressed="false"
         aria-label="Like image"
         type="button"
       >
-        <svg
-          className="w-5 h-5 fill-none stroke-red-500"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-          />
-        </svg>
-        <span>{count}</span>
+        {loading ? (
+          <FaSpinner className="w-5 h-5 animate-spin" />
+        ) : (
+          <FaRegHeart className="w-5 h-5 stroke-red-500" />
+        )}
+        {!initializing && <span>{count}</span>}
       </button>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </>

@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 import { rateLimit } from "@/utils/rateLimit";
+import { del as blobDel } from "@vercel/blob"; // <-- Import Vercel Blob delete
 
 const prisma = new PrismaClient();
 
@@ -41,15 +42,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    // Delete the file from disk (if url is valid)
+    // Delete the file from storage
     if (typeof image.url === "string" && image.url) {
-      const filePath = path.join(process.cwd(), "public", image.url);
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (fileErr) {
-          console.error("Failed to delete file:", fileErr);
+      try {
+        if (process.env.USE_BLOB_STORAGE === "true") {
+          // Vercel Blob: extract the blob path from the URL
+          const url = new URL(image.url);
+          const blobPath = url.pathname.startsWith("/") ? url.pathname.slice(1) : url.pathname;
+          await blobDel(blobPath);
+        } else {
+          // Local: remove from public/uploads
+          const filePath = path.join(process.cwd(), "public", image.url);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
         }
+      } catch (fileErr) {
+        console.error("Failed to delete file:", fileErr);
       }
     }
 

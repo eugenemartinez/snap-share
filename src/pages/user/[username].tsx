@@ -10,6 +10,7 @@ import FollowButton from "@/components/FollowButton";
 import { useSession } from "next-auth/react";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import Toast from "@/components/Toast";
+import Button from "@/components/Button";
 
 const prisma = new PrismaClient();
 
@@ -124,12 +125,15 @@ export default function PublicProfile({
         </div>
         {hasMore && !loadingMore && (
           <div className="flex justify-center my-6">
-            <button
+            <Button
               onClick={() => setPage((p) => p + 1)}
-              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              className="px-6"
+              disabled={loadingMore}
+              loading={loadingMore}
             >
               Load More
-            </button>
+            </Button>
           </div>
         )}
         {loadingMore && (

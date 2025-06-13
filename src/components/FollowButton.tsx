@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -49,19 +50,14 @@ export default function FollowButton({
       <p className="text-gray-500 text-sm mb-4">
         {count} follower{count === 1 ? "" : "s"}
       </p>
-      <button
+      <Button
         onClick={toggleFollow}
-        disabled={loading}
-        className={`px-4 py-1 rounded-full font-semibold transition cursor-pointer
-          ${
-            following
-              ? "bg-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]"
-              : "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--ring)]"
-          }
-        `}
+        loading={loading}
+        variant={following ? "outline" : "primary"}
+        className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
       >
         {following ? "Unfollow" : "Follow"}
-      </button>
+      </Button>
     </div>
   );
 }

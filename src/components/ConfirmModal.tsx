@@ -1,9 +1,10 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import Button from "@/components/Button";
 
 type ConfirmModalProps = {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
   title?: string;
   description?: ReactNode;
   confirmText?: string;
@@ -21,7 +22,20 @@ export default function ConfirmModal({
   cancelText = "Cancel",
   type = "danger",
 }: ConfirmModalProps) {
+  const [loading, setLoading] = useState(false);
+
   if (!open) return null;
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+    } finally {
+      setLoading(false);
+      onClose();
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
@@ -42,31 +56,25 @@ export default function ConfirmModal({
         <h2 className="text-xl font-bold mb-2 text-center">{title}</h2>
         {description && <div className="mb-4 text-center text-gray-600">{description}</div>}
         <div className="flex justify-center gap-4 mt-4">
-          <button
+          <Button
+            type="button"
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2 rounded font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer transition-colors"
+            disabled={loading}
           >
             {cancelText}
-          </button>
-          <button
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            className={`px-4 py-2 rounded font-semibold cursor-pointer transition-colors ${
-              type === "danger"
-                ? "bg-red-600 text-white hover:bg-red-700"
-                : "bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)]"
-            }`}
+          </Button>
+          <Button
+            type="button"
+            variant={type === "danger" ? "destructive" : "primary"}
+            onClick={handleConfirm}
+            loading={loading}
+            disabled={loading}
           >
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
   );
 }
-
-// Add this to your global CSS or Tailwind config if not present:
-// @keyframes fade-in { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: translateY(0);} }
-// .animate-fade-in { animation: fade-in 0.2s ease; }

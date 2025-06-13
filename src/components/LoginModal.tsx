@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 type LoginModalProps = {
   onClose: () => void;
@@ -58,13 +59,14 @@ export default function LoginModal({ onClose }: LoginModalProps) {
             className="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           />
           {error && <div className="text-red-500 text-sm">{error}</div>}
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="bg-[var(--primary)] text-[var(--primary-foreground)] py-2 rounded font-semibold transition-all duration-200 hover:scale-105 focus:scale-105 cursor-pointer"
+            loading={loading}
+            fullWidth
+            className="mt-2"
           >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
+            Sign In
+          </Button>
         </form>
         <div className="mt-4 text-center text-sm">
           Not registered?{" "}

@@ -9,6 +9,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
 import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 const prisma = new PrismaClient();
 
@@ -93,7 +94,7 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
       <Navbar />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="min-h-[85vh] flex items-center justify-center">
-        <div className="max-w-4xl w-full mx-4 sm:mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
+        <div className="max-w-4xl w-full mx-4 md:mx-4 sm:mx-auto p-6 border rounded bg-[var(--card)] text-[var(--card-foreground)] shadow-lg">
           <div className="flex items-center gap-3 mb-4">
             <Link href={`/user/${image.user.username}`} className="flex items-center gap-3 group">
               <Image
@@ -122,12 +123,27 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
                 {new Date(image.createdAt).toLocaleString()}
               </p>
             </div>
-            <span className="ml-2">
-              <LikeButton 
-              imageId={image.id}
-              setToast={setToast}
-               />
-            </span>
+            <div className="flex flex-col items-end gap-2 ml-2">
+              <LikeButton imageId={image.id} setToast={setToast} />
+              {isOwner && !editing && (
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    onClick={() => setEditing(true)}
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
           {editing ? (
             <form
@@ -151,45 +167,24 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
                 disabled={loading}
               />
               <div className="flex gap-2">
-                <button
+                <Button
                   type="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer"
-                  disabled={loading}
+                  loading={loading}
+                  variant="primary"
                 >
                   Save
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => setEditing(false)}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
                   disabled={loading}
+                  variant="secondary"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
-          ) : (
-            <>
-              {isOwner && (
-                <div className="flex gap-4 mt-4">
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="text-blue-600 font-semibold hover:underline transition cursor-pointer"
-                    disabled={loading}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="text-red-600 font-semibold hover:underline transition cursor-pointer"
-                    disabled={loading}
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          ) : null}
         </div>
       </div>
       <ConfirmModal

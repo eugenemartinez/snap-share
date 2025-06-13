@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Image from "next/image";
+import Button from "@/components/Button";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -14,6 +15,7 @@ export default function Upload() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [loading, setLoading] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,10 +46,7 @@ export default function Upload() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!image) {
-      setToast({ message: "Please select an image.", type: "error" });
-      return;
-    }
+    if (!image || success) return;
     setLoading(true);
     setToast(null);
 
@@ -65,6 +64,7 @@ export default function Upload() {
       if (res.ok) {
         const data = await res.json();
         setToast({ message: "Upload successful!", type: "success" });
+        setSuccess(true);
         setTimeout(() => router.push(`/image/${data.id}`), 1200);
       } else {
         const data = await res.json();
@@ -98,7 +98,7 @@ export default function Upload() {
                 onClick={handleRemoveImage}
                 className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold hover:bg-black/80 transition cursor-pointer"
                 aria-label="Remove image"
-                disabled={loading}
+                disabled={loading || success}
               >
                 &times;
               </button>
@@ -113,7 +113,7 @@ export default function Upload() {
               onChange={handleFileChange}
               required
               className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded"
-              disabled={loading}
+              disabled={loading || success}
             />
           )}
           {fileError && (
@@ -126,7 +126,7 @@ export default function Upload() {
             onChange={e => setTitle(e.target.value)}
             required
             className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded"
-            disabled={loading}
+            disabled={loading || success}
           />
           <textarea
             placeholder="Description"
@@ -134,15 +134,19 @@ export default function Upload() {
             onChange={e => setDescription(e.target.value)}
             required
             className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded"
-            disabled={loading}
+            disabled={loading || success}
           />
-          <button
+          <Button
             type="submit"
-            className="bg-[var(--primary)] text-[var(--primary-foreground)] py-2 rounded font-semibold transition-all duration-200 hover:scale-105 focus:scale-105 cursor-pointer"
-            disabled={loading || !!fileError}
+            loading={loading}
+            success={success}
+            loadingMessage="Uploading & Processing..."
+            successMessage="Image Uploaded Successfully!"
+            fullWidth
+            disabled={!!fileError}
           >
-            {loading ? "Uploading & Processing..." : "Upload"}
-          </button>
+            Upload
+          </Button>
         </form>
       </div>
     </>

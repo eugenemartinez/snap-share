@@ -10,6 +10,7 @@ import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 type ImageType = {
   id: string;
@@ -170,12 +171,15 @@ export default function PublicGallery() {
         {/* Load More button */}
         {hasMore && !loadingMore && (
           <div className="flex justify-center my-6">
-            <button
+            <Button
               onClick={() => setPage(p => p + 1)}
-              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              className="px-6"
+              disabled={loadingMore}
+              loading={loadingMore}
             >
               Load More
-            </button>
+            </Button>
           </div>
         )}
         {loadingMore && (
@@ -219,18 +223,18 @@ export default function PublicGallery() {
               alt={selectedImage.title}
               width={500}
               height={300}
-              className="w-full h-auto rounded"
+              className="w-full h-auto rounded mb-4"
               priority={false}
             />
             <div className="flex items-start justify-between mt-4 mb-2">
               <div className="min-w-0 max-w-[70%]">
                 <h2 className="text-xl font-bold">{selectedImage.title}</h2>
-                <p className="text-gray-600">{selectedImage.description}</p>
+                <p className="text-gray-600 mt-2">{selectedImage.description}</p>
                 <p className="text-xs text-gray-400 mt-2">
                   {new Date(selectedImage.createdAt).toLocaleString()}
                 </p>
               </div>
-              <span className="ml-2">
+              <div className="flex flex-col items-end gap-2 ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
                   onLike={() => {
@@ -238,70 +242,72 @@ export default function PublicGallery() {
                   }}
                   setToast={setToast}
                 />
-              </span>
-            </div>
-            {session?.user?.email === selectedImage.user.email && (
-              <div className="flex flex-col gap-2 mt-4">
-                {editingId === selectedImage.id ? (
-                  <form
-                    onSubmit={e => {
-                      e.preventDefault();
-                      handleUpdate(selectedImage.id, editTitle, editDescription);
-                    }}
-                    className="flex flex-col gap-2"
-                  >
-                    <input
-                      value={editTitle}
-                      aria-label="Edit title"
-                      onChange={e => setEditTitle(e.target.value)}
-                      className="border p-1"
-                    />
-                    <textarea
-                      value={editDescription}
-                      aria-label="Edit description"
-                      onChange={e => setEditDescription(e.target.value)}
-                      className="border p-1"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        type="submit"
-                        className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
+                {session?.user?.email === selectedImage.user.email && editingId !== selectedImage.id && (
+                  <div className="flex gap-2 mt-2">
+                    <Button
                       onClick={() => {
                         setEditingId(selectedImage.id);
                         setEditTitle(selectedImage.title);
                         setEditDescription(selectedImage.description);
                       }}
-                      className="text-blue-500 hover:underline cursor-pointer transition-colors"
+                      variant="outline"
+                      className="font-semibold"
                     >
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => {
                         setDeleteId(selectedImage.id);
                         setShowConfirm(true);
                       }}
-                      className="text-red-500 hover:underline cursor-pointer transition-colors"
+                      variant="outline"
+                      className="font-semibold"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
+            </div>
+            {/* Edit form below the image/content, full width */}
+            {editingId === selectedImage.id && (
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleUpdate(selectedImage.id, editTitle, editDescription);
+                }}
+                className="flex flex-col gap-3 mt-4"
+              >
+                <input
+                  value={editTitle}
+                  aria-label="Edit title"
+                  onChange={e => setEditTitle(e.target.value)}
+                  className="border p-2 rounded"
+                />
+                <textarea
+                  value={editDescription}
+                  aria-label="Edit description"
+                  onChange={e => setEditDescription(e.target.value)}
+                  className="border p-2 rounded"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    loading={loading}
+                    variant="primary"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setEditingId(null)}
+                    disabled={loading}
+                    variant="secondary"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             )}
           </div>
         )}

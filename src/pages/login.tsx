@@ -3,12 +3,14 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
+import Button from "@/components/Button";
 
 export default function Login() {
   const { status } = useSession();
   const [identifier, setIdentifier] = useState(""); // email or username
   const [password, setPassword] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [loading, setLoading] = useState(false); // <-- Add loading state
   const router = useRouter();
 
   useEffect(() => {
@@ -31,11 +33,13 @@ export default function Login() {
       setToast({ message: "Please enter your email/username and password.", type: "error" });
       return;
     }
+    setLoading(true); // <-- Start loading
     const res = await signIn("credentials", {
       redirect: false,
       identifier,
       password,
     });
+    setLoading(false); // <-- End loading
     if (res?.ok) {
       router.push({
         pathname: "/",
@@ -72,12 +76,13 @@ export default function Login() {
             required
             className="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition"
           />
-          <button
+          <Button
             type="submit"
-            className="bg-[var(--primary)] text-[var(--primary-foreground)] py-2 rounded font-semibold transition-all duration-200 hover:scale-105 focus:scale-105 cursor-pointer"
+            loading={loading}
+            fullWidth
           >
             Sign In
-          </button>
+          </Button>
         </form>
       </div>
     </>

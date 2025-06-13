@@ -5,6 +5,8 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 import { useRouter } from "next/router";
 import Spinner from "./Spinner";
 import DarkModeToggle from "./DarkModeToggle";
+import Button from "@/components/Button";
+import { FaHome, FaInfoCircle, FaUpload, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaBars } from "react-icons/fa";
 
 export type NavbarHandle = {
   refetchAvatar: () => void;
@@ -16,6 +18,7 @@ const Navbar = forwardRef(function Navbar(props, ref) {
   const [loading, setLoading] = useState(false);
   const [avatar, setAvatar] = useState<string>("/avatar.png");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fetch avatar logic
@@ -92,35 +95,27 @@ const Navbar = forwardRef(function Navbar(props, ref) {
         {/* Desktop menu */}
         <div className="hidden lg:flex items-center gap-4">
           <Link href="/" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
-            {/* Home/Public Gallery Icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0h-6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2z" />
-            </svg>
+            <FaHome className="h-5 w-5" />
             Public Gallery
           </Link>
           <Link href="/about" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
-            {/* About Icon (Info SVG) */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
-            </svg>
+            <FaInfoCircle className="h-5 w-5" />
             About
           </Link>
           {session && (
             <Link href="/upload" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
-              {/* Upload Icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
-              </svg>
+              <FaUpload className="h-5 w-5" />
               Upload
             </Link>
           )}
           {!session && (
             <>
               <Link href="/login" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
+                <FaSignInAlt className="h-5 w-5" />
                 Login
               </Link>
               <Link href="/register" className="hover:text-[var(--primary)] font-medium transition flex items-center gap-2">
+                <FaUserPlus className="h-5 w-5" />
                 Register
               </Link>
             </>
@@ -130,7 +125,7 @@ const Navbar = forwardRef(function Navbar(props, ref) {
               <button
                 type="button"
                 onClick={() => router.push("/profile")}
-                className="flex items-center gap-2 px-4 py-1 rounded-full bg-[var(--card)] shadow border border-[var(--border)] cursor-pointer transition hover:bg-[var(--primary)] hover:text-white focus:outline-none"
+                className="flex items-center gap-2 px-4 py-1 rounded-full bg-[var(--card)] shadow border border-[var(--border)] cursor-pointer transition hover:bg-[var(--primary)] hover:text-white focus:outline-none hover:scale-105 hover:shadow-md"
                 title="Go to profile"
               >
                 <Image
@@ -145,20 +140,21 @@ const Navbar = forwardRef(function Navbar(props, ref) {
                   {session.user?.name || session.user?.email}
                 </span>
               </button>
-              <button
-                onClick={() =>
-                  signOut({
+              <Button
+                type="button"
+                variant="outline"
+                loading={isLoggingOut}
+                onClick={async () => {
+                  setIsLoggingOut(true);
+                  await signOut({
                     callbackUrl: "/login?toast=Logged%20out%20successfully!",
-                  })
-                }
-                className="text-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-white px-3 py-1 rounded-full font-semibold transition cursor-pointer focus:outline-none flex items-center gap-2"
+                  });
+                }}
+                className="bg-[var(--sidebar)] text-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-white px-3 py-1 rounded-full font-semibold transition cursor-pointer focus:outline-none flex items-center gap-2"
+                leftIcon={<FaSignOutAlt className="h-5 w-5" />}
               >
-                {/* Logout Icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
-                </svg>
                 Logout
-              </button>
+              </Button>
             </>
           )}
           <DarkModeToggle />
@@ -170,14 +166,26 @@ const Navbar = forwardRef(function Navbar(props, ref) {
             className="p-2 rounded hover:bg-[var(--muted)] transition"
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <svg width={28} height={28} fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 8h20M4 16h20" />
-            </svg>
+            <FaBars className="w-7 h-7" />
           </button>
           {menuOpen && (
             <div
               ref={menuRef}
-              className="absolute top-16 right-4 bg-[var(--card)] text-[var(--card-foreground)] rounded shadow-lg flex flex-col gap-2 p-4 min-w-[200px] z-50 border border-[var(--border)]"
+              className="
+                absolute top-16 right-4
+                bg-[var(--card)] bg-opacity-95
+                backdrop-blur
+                text-[var(--card-foreground)]
+                rounded-xl
+                shadow-2xl
+                flex flex-col gap-3
+                p-5
+                min-w-[220px]
+                z-50
+                border border-[var(--border)]
+                transition-all
+                animate-fade-in
+              "
             >
               {/* Profile at the top */}
               {session && (
@@ -187,7 +195,7 @@ const Navbar = forwardRef(function Navbar(props, ref) {
                     setMenuOpen(false);
                     router.push("/profile");
                   }}
-                  className="flex items-center gap-2 px-4 py-1 rounded-full bg-[var(--card)] shadow border border-[var(--border)] cursor-pointer transition hover:bg-[var(--primary)] hover:text-white focus:outline-none justify-center mb-2"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--muted)] shadow border border-[var(--border)] cursor-pointer transition hover:bg-[var(--primary)] hover:text-white focus:outline-none justify-center mb-2"
                   title="Go to profile"
                 >
                   <Image
@@ -204,74 +212,76 @@ const Navbar = forwardRef(function Navbar(props, ref) {
                 </button>
               )}
 
+              {/* Divider */}
+              <div className="border-b border-[var(--border)] my-2" />
+
               {/* Theme toggle - full width */}
-                <DarkModeToggle />
+              <DarkModeToggle />
 
               {/* Navigation links */}
-              <Link
-                href="/"
-                className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
-                onClick={() => setMenuOpen(false)}
-              >
-                {/* Home/Public Gallery Icon */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0h-6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2z" />
-                </svg>
-                Public Gallery
-              </Link>
-              <Link
-                href="/about"
-                className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
-                onClick={() => setMenuOpen(false)}
-              >
-                {/* About Icon (Info SVG) */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
-                </svg>
-                About
-              </Link>
-              {session && (
+              <div className="flex flex-col gap-2 mt-2">
                 <Link
-                  href="/upload"
+                  href="/"
                   className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
                   onClick={() => setMenuOpen(false)}
                 >
-                  {/* Upload Icon */}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" />
-                  </svg>
-                  Upload
+                  <FaHome className="h-5 w-5" />
+                  Public Gallery
                 </Link>
-              )}
-              {!session && (
-                <>
-                  <Link href="/login" className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2" onClick={() => setMenuOpen(false)}>
-                    Login
+                <Link
+                  href="/about"
+                  className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <FaInfoCircle className="h-5 w-5" />
+                  About
+                </Link>
+                {session && (
+                  <Link
+                    href="/upload"
+                    className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <FaUpload className="h-5 w-5" />
+                    Upload
                   </Link>
-                  <Link href="/register" className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2" onClick={() => setMenuOpen(false)}>
-                    Register
-                  </Link>
-                </>
-              )}
+                )}
+                {!session && (
+                  <>
+                    <Link href="/login" className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2" onClick={() => setMenuOpen(false)}>
+                      <FaSignInAlt className="h-5 w-5" />
+                      Login
+                    </Link>
+                    <Link href="/register" className="hover:text-[var(--primary)] font-medium transition flex items-center justify-center gap-2" onClick={() => setMenuOpen(false)}>
+                      <FaUserPlus className="h-5 w-5" />
+                      Register
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="border-b border-[var(--border)] my-2" />
 
               {/* Logout at the bottom */}
               {session && (
-                <button
-                  onClick={() => {
+                <Button
+                  type="button"
+                  variant="outline"
+                  loading={isLoggingOut}
+                  onClick={async () => {
                     setMenuOpen(false);
-                    signOut({
+                    setIsLoggingOut(true);
+                    await signOut({
                       callbackUrl: "/login?toast=Logged%20out%20successfully!",
                     });
                   }}
-                  className="text-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-white px-3 py-1 rounded-full font-semibold transition cursor-pointer focus:outline-none flex items-center justify-center gap-2"
+                  className="text-[var(--destructive)] hover:bg-[var(--destructive)] hover:text-white px-3 py-2 rounded-full font-semibold transition cursor-pointer focus:outline-none flex items-center justify-center gap-2"
+                  leftIcon={<FaSignOutAlt className="h-5 w-5" />}
+                  fullWidth
                 >
-                  {/* Logout Icon */}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
-                  </svg>
                   Logout
-                </button>
+                </Button>
               )}
             </div>
           )}

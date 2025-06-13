@@ -10,6 +10,7 @@ import Toast from "@/components/Toast";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import ProfileSectionSkeleton from "@/components/ProfileSectionSkeleton";
 import LikeButton from "@/components/LikeButton";
+import Button from "@/components/Button";
 
 type Profile = {
   email: string;
@@ -42,6 +43,7 @@ export default function ProfilePage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [followerCount, setFollowerCount] = useState<number>(0);
@@ -165,11 +167,6 @@ export default function ProfilePage() {
     setAvatar(file);
   }
 
-  function handleDelete(id: string) {
-    setDeleteId(id);
-    setShowConfirm(true);
-  }
-
   async function confirmDelete() {
     if (!deleteId) return;
     const res = await fetch("/api/delete-image", {
@@ -189,22 +186,24 @@ export default function ProfilePage() {
     setDeleteId(null);
   }
 
-  async function handleUpdate(id: string, title: string, description: string) {
+    async function handleUpdate(id: string, title: string, description: string) {
+    setLoading(true);
     const res = await fetch("/api/update-image", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, title, description }),
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, title, description }),
     });
     const data = await res.json();
+    setLoading(false);
     if (res.ok) {
-      setImages(images => images.map(img => img.id === id ? { ...img, title, description } : img));
-      setEditingId(null);
-      setSelectedImage(img => img && img.id === id ? { ...img, title, description } : img);
-      setToast({ message: data.message || "Image updated", type: "success" });
+        setImages(images => images.map(img => img.id === id ? { ...img, title, description } : img));
+        setEditingId(null);
+        setSelectedImage(img => img && img.id === id ? { ...img, title, description } : img);
+        setToast({ message: data.message || "Image updated", type: "success" });
     } else {
-      setToast({ message: data.message || "Failed to update image.", type: "error" });
+        setToast({ message: data.message || "Failed to update image.", type: "error" });
     }
-  }
+    }
 
   if (status === "loading" || !profile) {
     return (
@@ -312,12 +311,15 @@ export default function ProfilePage() {
         </div>
         {hasMore && !loadingMore && (
           <div className="flex justify-center my-6">
-            <button
+            <Button
               onClick={() => setPage(p => p + 1)}
-              className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded font-semibold hover:scale-105 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="primary"
+              className="px-6"
+              disabled={loadingMore}
+              loading={loadingMore}
             >
               Load More
-            </button>
+            </Button>
           </div>
         )}
         {loadingMore && (
@@ -344,81 +346,89 @@ export default function ProfilePage() {
               alt={selectedImage.title}
               width={500}
               height={300}
-              className="w-full h-auto rounded"
+              className="w-full h-auto rounded mb-4"
             />
             <div className="flex items-start justify-between mt-4 mb-2">
               <div className="min-w-0 max-w-[70%]">
                 <h2 className="text-xl font-bold">{selectedImage.title}</h2>
-                <p className="text-gray-600">{selectedImage.description}</p>
+                <p className="text-gray-600 mt-2">{selectedImage.description}</p>
                 <p className="text-xs text-gray-400 mt-2">
                   {new Date(selectedImage.createdAt).toLocaleString()}
                 </p>
               </div>
-              <span className="ml-2">
+              <div className="flex flex-col items-end gap-2 ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
                   onLike={() => {
-                    cardRefs.current[selectedImage.id]?.refetchLikeState();
+                    cardRefs.current[selectedImage.id]?.refetchLikeState?.();
                   }}
                   setToast={setToast}
                 />
-              </span>
+                {editingId !== selectedImage.id && (
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      onClick={() => {
+                        setEditingId(selectedImage.id);
+                        setEditTitle(selectedImage.title);
+                        setEditDescription(selectedImage.description);
+                      }}
+                      variant="outline"
+                      className="font-semibold"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setDeleteId(selectedImage.id);
+                        setShowConfirm(true);
+                      }}
+                      variant="outline"
+                      className="font-semibold"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-            {editingId === selectedImage.id ? (
+            {editingId === selectedImage.id && (
               <form
                 onSubmit={e => {
                   e.preventDefault();
                   handleUpdate(selectedImage.id, editTitle, editDescription);
                 }}
-                className="flex flex-col gap-2 mt-4"
+                className="flex flex-col gap-3 mt-4"
               >
                 <input
                   value={editTitle}
                   aria-label="Edit title"
                   onChange={e => setEditTitle(e.target.value)}
-                  className="border p-1"
+                  className="border p-2 rounded"
                 />
                 <textarea
                   value={editDescription}
                   aria-label="Edit description"
                   onChange={e => setEditDescription(e.target.value)}
-                  className="border p-1"
+                  className="border p-2 rounded"
                 />
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     type="submit"
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 cursor-pointer"
+                    loading={loading}
+                    variant="primary"
                   >
                     Save
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => setEditingId(null)}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer"
+                    disabled={loading}
+                    variant="secondary"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </form>
-            ) : (
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => {
-                    setEditingId(selectedImage.id);
-                    setEditTitle(selectedImage.title);
-                    setEditDescription(selectedImage.description);
-                  }}
-                  className="text-blue-500 hover:underline cursor-pointer transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(selectedImage.id)}
-                  className="text-red-500 hover:underline cursor-pointer transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
             )}
           </div>
         )}
