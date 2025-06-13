@@ -126,46 +126,56 @@ export default function PublicProfile({
         <h2 className="text-2xl font-bold mb-6 text-center">
           {user.username}&apos;s Gallery
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {images.map((img) => (
-            <GalleryCard
-              key={img.id}
-              ref={(el) => {
-                cardRefs.current[img.id] = el;
-              }}
-              image={img}
-              onClick={() => setSelectedImage(img)}
-              setToast={setToast}
-            />
-          ))}
-        </div>
-        {hasMore && !loadingMore && (
-          <div className="flex justify-center my-6">
-            <Button
-              onClick={() => setPage((p) => p + 1)}
-              variant="primary"
-              className="px-6"
-              disabled={loadingMore}
-              loading={loadingMore}
-            >
-              Load More
-            </Button>
-          </div>
-        )}
-        {loadingMore && (
+        {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
           </div>
-        )}
-        {!hasMore && images.length > 0 && (
-          <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
-        )}
-        {images.length === 0 && !loading && (
-          <p className="mt-4 text-gray-500 text-center">
-            No images uploaded yet.
-          </p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {images.map((img) => (
+                <GalleryCard
+                  key={img.id}
+                  ref={(el) => {
+                    cardRefs.current[img.id] = el;
+                  }}
+                  image={img}
+                  onClick={() => setSelectedImage(img)}
+                  setToast={setToast}
+                />
+              ))}
+            </div>
+            {hasMore && !loadingMore && (
+              <div className="flex justify-center my-6">
+                <Button
+                  onClick={() => setPage((p) => p + 1)}
+                  variant="primary"
+                  className="px-6"
+                  disabled={loadingMore}
+                  loading={loadingMore}
+                >
+                  Load More
+                </Button>
+              </div>
+            )}
+            {loadingMore && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <GalleryCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+            {!hasMore && images.length > 0 && (
+              <p className="text-center text-gray-500 my-6">You&apos;ve reached the end.</p>
+            )}
+            {images.length === 0 && !loading && (
+              <p className="mt-4 text-gray-500 text-center">
+                No images uploaded yet.
+              </p>
+            )}
+          </>
         )}
       </div>
 
