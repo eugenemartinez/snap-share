@@ -207,25 +207,14 @@ export default function ProfilePage() {
     }
     }
 
-  if (status === "loading" || !profile) {
-    return (
-      <>
-        <Navbar />
-        <div className="max-w-md mx-4 sm:mx-auto mt-8">
-          <ProfileSectionSkeleton />
-        </div>
-        <div className="max-w-2xl mx-auto mt-8">
-          <h2 className="text-2xl font-bold mb-4 text-center">My Gallery</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mx-4 sm:mx-auto">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <GalleryCardSkeleton key={i} />
-            ))}
-          </div>
-        </div>
-      </>
-    );
+  if (status === "loading" || status === "unauthenticated") return null;
+
+  if (!profile) {
+    // Show a skeleton, loading, or error state
+    return <ProfileSectionSkeleton />;
   }
 
+  // Now it's safe to use profile
   return (
     <>
     <Head>
