@@ -227,5 +227,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     },
   });
-  return { props: { image: image ? JSON.parse(JSON.stringify(image)) : null } };
+
+  if (!image) {
+    return { notFound: true };
+  }
+
+  return { props: { image: JSON.parse(JSON.stringify(image)) } };
 };

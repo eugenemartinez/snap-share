@@ -214,30 +214,31 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       username: true,
       avatar: true,
       bio: true,
-      // images: true, // No longer needed
     },
   });
 
+  if (!user) {
+    return { notFound: true };
+  }
+
   // Fetch follower count and following state
   let followData = { count: 0, following: false };
-  if (user) {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      `http://${context.req.headers.host}`;
-    const res = await fetch(
-      `${baseUrl}/api/user/${encodeURIComponent(username)}/follow`,
-      {
-        headers: { cookie: context.req.headers.cookie || "" },
-      }
-    );
-    if (res.ok) {
-      followData = await res.json();
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    `http://${context.req.headers.host}`;
+  const res = await fetch(
+    `${baseUrl}/api/user/${encodeURIComponent(username)}/follow`,
+    {
+      headers: { cookie: context.req.headers.cookie || "" },
     }
+  );
+  if (res.ok) {
+    followData = await res.json();
   }
 
   return {
     props: {
-      user: user ? JSON.parse(JSON.stringify(user)) : null,
+      user: JSON.parse(JSON.stringify(user)),
       followData,
     },
   };
