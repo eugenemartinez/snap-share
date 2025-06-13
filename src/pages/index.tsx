@@ -39,6 +39,7 @@ export default function PublicGallery() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [modalLikeState, setModalLikeState] = useState<{ liked: boolean; count: number }>({ liked: false, count: 0 });
 
   // Show toast if redirected with a toast query param (e.g. after login)
   useEffect(() => {
@@ -154,7 +155,13 @@ export default function PublicGallery() {
                   ref={el => { cardRefs.current[img.id] = el; }}
                   key={img.id}
                   image={img}
-                  onClick={() => setSelectedImage(img)}
+                  onClick={() => {
+                    setSelectedImage(img);
+                    setModalLikeState({
+                      liked: cardRefs.current[img.id]?.getLiked?.() ?? false,
+                      count: cardRefs.current[img.id]?.getLikeCount?.() ?? 0,
+                    });
+                  }}
                   setToast={setToast}
                 />
               ))}
@@ -228,6 +235,8 @@ export default function PublicGallery() {
               <div className="flex flex-col items-end gap-2 ml-2">
                 <LikeButton
                   imageId={selectedImage.id}
+                  initialLiked={modalLikeState.liked}
+                  initialCount={modalLikeState.count}
                   onLike={() => {
                     cardRefs.current[selectedImage.id]?.refetchLikeState();
                   }}
