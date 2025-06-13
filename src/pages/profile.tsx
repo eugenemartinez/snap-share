@@ -326,7 +326,8 @@ export default function ProfilePage() {
                 />
               ))}
             </div>
-            {hasMore && !loadingMore && (
+            {/* Only show Load More after initial images are loaded */}
+            {profile && images.length > 0 && hasMore && !loadingMore && (
               <div className="flex justify-center my-6">
                 <Button
                   onClick={() => setPage(p => p + 1)}
