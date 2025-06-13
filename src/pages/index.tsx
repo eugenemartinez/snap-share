@@ -41,6 +41,7 @@ export default function PublicGallery() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [, setDeleteLoadingId] = useState<string | null>(null);
 
   // Show toast if redirected with a toast query param (e.g. after login)
   useEffect(() => {
@@ -100,14 +101,14 @@ export default function PublicGallery() {
   }, [page]);
 
   async function handleDelete(id: string) {
-    setLoading(true);
+    setDeleteLoadingId(id);
     const res = await fetch("/api/delete-image", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
     const data = await res.json();
-    setLoading(false);
+    setDeleteLoadingId(null);
     if (res.ok) {
       setImages(images => images.filter(img => img.id !== id));
       setSelectedImage(null);
@@ -150,7 +151,7 @@ export default function PublicGallery() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
           {loading
-            ? Array.from({ length: 8 }).map((_, i) => <GalleryCardSkeleton key={i} />)
+            ? Array.from({ length: 9 }).map((_, i) => <GalleryCardSkeleton key={i} />)
             : images.map(img => (
                 <GalleryCard
                   ref={el => { cardRefs.current[img.id] = el; }}

@@ -46,10 +46,11 @@ export default function ProfilePage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, ] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [followerCount, setFollowerCount] = useState<number>(0);
+  const [updateLoading, setUpdateLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const navbarRef = useRef<NavbarHandle>(null);
@@ -189,15 +190,15 @@ export default function ProfilePage() {
     setDeleteId(null);
   }
 
-    async function handleUpdate(id: string, title: string, description: string) {
-    setLoading(true);
+  async function handleUpdate(id: string, title: string, description: string) {
+    setUpdateLoading(true); // <-- Only for the update button/spinner
     const res = await fetch("/api/update-image", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, title, description }),
     });
     const data = await res.json();
-    setLoading(false);
+    setUpdateLoading(false);
     if (res.ok) {
         setImages(images => images.map(img => img.id === id ? { ...img, title, description } : img));
         setEditingId(null);
@@ -433,7 +434,7 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   <Button
                     type="submit"
-                    loading={loading}
+                    loading={updateLoading}
                     variant="primary"
                   >
                     Save
