@@ -56,6 +56,7 @@ export default function ProfilePage() {
     if (status === "unauthenticated") {
       router.replace("/login");
     }
+    
     if (status === "authenticated") {
       fetch("/api/profile")
         .then(res => res.json())

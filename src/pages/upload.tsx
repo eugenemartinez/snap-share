@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import Toast from "@/components/Toast";
 import Image from "next/image";
@@ -19,6 +20,13 @@ export default function Upload() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
@@ -77,6 +85,8 @@ export default function Upload() {
       setLoading(false);
     }
   }
+
+  if (status === "loading" || status === "unauthenticated") return null;
 
   return (
     <>
