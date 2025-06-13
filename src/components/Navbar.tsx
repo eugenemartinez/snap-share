@@ -81,7 +81,7 @@ const Navbar = forwardRef(function Navbar(props, ref) {
   return (
     <>
       {loading && <Spinner />}
-      <nav className="w-full py-3 px-6 flex justify-between items-center mb-8 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] shadow-lg sticky top-0 z-40">
+      <nav className="w-full py-3 px-6 flex justify-between items-center mb-8 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] shadow-lg sticky top-0 z-51">
         <div className="flex items-center gap-6">
           <Link
             href="/"
