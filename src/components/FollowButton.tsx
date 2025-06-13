@@ -60,7 +60,7 @@ export default function FollowButton({
       >
         {following ? "Unfollow" : "Follow"}
       </Button>
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
     </div>
   );
 }

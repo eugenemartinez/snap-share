@@ -3,7 +3,13 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import Button from "@/components/Button";
 
-export default function LoginModal({ onClose }: { onClose: () => void }) {
+export default function LoginModal({
+  onClose,
+  setToast,
+}: {
+  onClose: () => void;
+  setToast?: (toast: { message: string; type: "success" | "error" }) => void;
+}) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,8 +27,10 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
     setLoading(false);
     if (res?.ok) {
       onClose();
+      setToast?.({ message: "Login successful!", type: "success" });
     } else {
       setError("Invalid credentials");
+      setToast?.({ message: "Invalid credentials", type: "error" });
     }
   }
 

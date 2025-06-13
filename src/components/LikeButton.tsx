@@ -103,7 +103,7 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
         )}
         {!initializing && <span>{count}</span>}
       </button>
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
     </>
   );
 });
