@@ -126,7 +126,7 @@ export default function Upload() {
               aria-label="Select image"
               onChange={handleFileChange}
               required
-              className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded"
+              className="border border-[var(--input)] bg-[var(--input)] text-[var(--foreground)] p-2 rounded cursor-pointer"
               disabled={loading || success}
             />
           )}

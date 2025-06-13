@@ -143,7 +143,7 @@ export default function PublicGallery() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="max-w-5xl md:mx-4 lg:mx-auto mt-8">
         <h2 className="text-2xl font-bold mb-2 mx-4 sm:mx-auto">Public Gallery</h2>
-        <p className="mb-6 mx-4 sm:mx-auto text-gray-400 text-base">
+        <p className="mb-6 mx-4 sm:mx-auto text-bg text-base">
           Discover and share your favorite moments with the SnapShare community!
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 mx-4 sm:mx-auto">
