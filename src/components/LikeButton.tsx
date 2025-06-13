@@ -17,7 +17,10 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
   const [showLogin, setShowLogin] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
+  const isButtonLoading = loading || initializing;
+
   const fetchLikeState = useCallback(() => {
+    setInitializing(true);
     fetch(`/api/images/${imageId}/like`)
       .then(res => res.json())
       .then(data => {
@@ -70,18 +73,18 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
       <>
         <button
           onClick={toggleLike}
-          disabled={loading}
+          disabled={isButtonLoading}
           className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/60 dark:text-red-200 dark:hover:bg-red-800/80 cursor-pointer disabled:opacity-60"
           aria-pressed="true"
           aria-label="Unlike image"
           type="button"
         >
-          {loading ? (
+          {isButtonLoading ? (
             <FaSpinner className="w-5 h-5 animate-spin" />
           ) : (
             <FaHeart className="w-5 h-5 fill-red-500" />
           )}
-          {!initializing && <span>{count}</span>}
+          {!isButtonLoading && <span>{count}</span>}
         </button>
         {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
       </>
@@ -92,18 +95,18 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(({ image
     <>
       <button
         onClick={toggleLike}
-        disabled={loading}
+        disabled={isButtonLoading}
         className="flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-gray-100 text-gray-500 hover:bg-red-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-red-800/80 cursor-pointer disabled:opacity-60"
         aria-pressed="false"
         aria-label="Like image"
         type="button"
       >
-        {loading ? (
+        {isButtonLoading ? (
           <FaSpinner className="w-5 h-5 animate-spin" />
         ) : (
           <FaRegHeart className="w-5 h-5 stroke-red-500" />
         )}
-        {!initializing && <span>{count}</span>}
+        {!isButtonLoading && <span>{count}</span>}
       </button>
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
     </>
