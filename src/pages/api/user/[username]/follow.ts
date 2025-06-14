@@ -47,23 +47,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "DELETE") {
     if (!user) return res.status(401).json({ message: "Unauthorized" });
-    await prisma.follow.deleteMany({
+    const deleted = await prisma.follow.deleteMany({
       where: { followerId: user.id, followingId: targetUser.id },
     });
+    if (deleted.count > 0) {
+      await prisma.user.update({
+        where: { id: targetUser.id },
+        data: { followerCount: { decrement: deleted.count } },
+      });
+    }
     return res.status(200).json({ following: false });
   }
 
   if (req.method === "GET") {
-    // Get follower count and if current user is following
-    const [count, following] = await Promise.all([
-      prisma.follow.count({ where: { followingId: targetUser.id } }),
-      user
-        ? prisma.follow.findUnique({
-            where: { followerId_followingId: { followerId: user.id, followingId: targetUser.id } },
-          })
-        : Promise.resolve(null),
-    ]);
-    return res.status(200).json({ count, following: !!following });
+    // Read followerCount directly from the user table
+    const freshTargetUser = await prisma.user.findUnique({ where: { id: targetUser.id } });
+    let following = false;
+    if (user) {
+      following = !!(await prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: user.id, followingId: targetUser.id } },
+      }));
+    }
+    return res.status(200).json({ count: freshTargetUser?.followerCount ?? 0, following });
   }
 
   return res.status(405).end();
