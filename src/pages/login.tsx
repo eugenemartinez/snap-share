@@ -44,10 +44,8 @@ export default function Login() {
     if (res?.error === "RATE_LIMIT") {
       setToast({ message: "Too many login attempts. Try again later.", type: "error" });
     } else if (res?.ok) {
-      router.push({
-        pathname: "/",
-        query: { toast: "Login successful!" }
-      });
+      window.sessionStorage.setItem("justLoggedIn", "1");
+      router.push("/");
     } else {
       setToast({ message: "Invalid email/username or password", type: "error" });
     }

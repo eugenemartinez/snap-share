@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/router";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Modal from "@/components/Modal";
@@ -26,8 +25,7 @@ type ImageType = {
 };
 
 export default function PublicGallery() {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { data: session, status } = useSession();
   const [images, setImages] = useState<ImageType[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
@@ -44,15 +42,6 @@ export default function PublicGallery() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [, setDeleteLoadingId] = useState<string | null>(null);
   const { setVisibleImageIds } = useLike();
-
-  // Show toast if redirected with a toast query param (e.g. after login)
-  useEffect(() => {
-    if (router.query.toast) {
-      setToast({ message: String(router.query.toast), type: "success" });
-      // Remove the toast param from the URL after showing
-      router.replace(router.pathname, undefined, { shallow: true });
-    }
-  }, [router.query.toast, router]);
 
   // Initial fetch
   useEffect(() => {
@@ -105,6 +94,15 @@ export default function PublicGallery() {
   useEffect(() => {
     setVisibleImageIds(images.map(img => img.id));
   }, [images, setVisibleImageIds]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && status === "authenticated") {
+      if (window.sessionStorage.getItem("justLoggedIn")) {
+        setToast({ message: "Login successful!", type: "success" });
+        window.sessionStorage.removeItem("justLoggedIn");
+      }
+    }
+  }, [status]);
 
   async function handleDelete(id: string) {
     setDeleteLoadingId(id);
