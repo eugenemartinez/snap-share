@@ -28,6 +28,8 @@ model User {
   followers    Follow[]    @relation("following") // users following this user
   following    Follow[]    @relation("follower")  // users this user is following
 
+  followerCount Int    @default(0)
+
   @@map("snapshare_user")
 }
 

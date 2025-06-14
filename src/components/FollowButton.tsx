@@ -33,7 +33,7 @@ export default function FollowButton({
       setCount((c) => c + (following ? -1 : 1));
       if (setToast) {
         setToast({
-          message: following ? "Unfollowed successfully." : "Followed successfully.",
+          message: following ? "Unfollowed successfully" : "Followed successfully",
           type: "success",
         });
       }

@@ -42,7 +42,15 @@ export default function LoginModal({
         }
       }}
     >
-      <div className="bg-[var(--card)] text-[var(--card-foreground)] rounded-lg shadow-lg p-8 min-w-[320px]">
+      <div className="relative bg-[var(--card)] text-[var(--card-foreground)] rounded-lg shadow-lg p-8 min-w-[320px]">
+        {/* X Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-2xl font-bold leading-none w-8 h-8 flex items-center justify-center rounded-full text-foreground/50 hover:text-primary/80 hover:bg-foreground/20 focus:outline-none cursor-pointer transition-colors"
+          aria-label="Close"
+        >
+          &times;
+        </button>
         <h2 className="text-2xl font-bold mb-4">Login Required</h2>
         <p className="mb-6">You need to be logged in to perform this action.</p>
         <form onSubmit={handleLogin} className="flex flex-col gap-3">

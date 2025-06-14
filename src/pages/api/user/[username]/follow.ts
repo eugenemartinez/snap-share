@@ -10,7 +10,6 @@ const FOLLOW_LIMIT = 5000;
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
 
-  // Get current user from DB using email (like the like system)
   let user = null;
   if (session?.user?.email) {
     user = await prisma.user.findUnique({ where: { email: session.user.email } });
@@ -30,11 +29,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ message: "Follow limit reached. No more follows allowed." });
     }
 
-    await prisma.follow.upsert({
+    // Only increment if this is a new follow
+    const existingFollow = await prisma.follow.findUnique({
       where: { followerId_followingId: { followerId: user.id, followingId: targetUser.id } },
-      update: {},
-      create: { followerId: user.id, followingId: targetUser.id },
     });
+    if (!existingFollow) {
+      await prisma.follow.create({
+        data: { followerId: user.id, followingId: targetUser.id },
+      });
+      await prisma.user.update({
+        where: { id: targetUser.id },
+        data: { followerCount: { increment: 1 } },
+      });
+    }
     return res.status(200).json({ following: true });
   }
 

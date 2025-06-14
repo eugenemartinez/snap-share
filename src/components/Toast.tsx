@@ -18,8 +18,8 @@ export default function Toast({
       className={`fixed top-6 left-1/2 -translate-x-1/2 z-51 px-6 py-3 rounded-lg shadow-lg font-semibold
         ${
           type === "error"
-            ? "bg-[#ef4444] text-white border border-[#b91c1c]"
-            : "bg-[#22c55e] text-white border border-[#15803d]"
+? "bg-[#fee2e2] text-[#991b1b] border border-[#fca5a5]"   // Soft red
+: "bg-[#dcfce7] text-[#166534] border border-[#86efac]"   // Soft green
         }
         animate-fade-in`}
       role="alert"
