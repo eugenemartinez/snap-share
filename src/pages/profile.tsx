@@ -51,6 +51,7 @@ export default function ProfilePage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [galleryLoading, setGalleryLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const navbarRef = useRef<NavbarHandle>(null);
@@ -59,7 +60,7 @@ export default function ProfilePage() {
     if (status === "unauthenticated") {
       router.replace("/login");
     }
-    
+
     if (status === "authenticated") {
       fetch("/api/profile")
         .then(res => res.json())
@@ -68,6 +69,7 @@ export default function ProfilePage() {
           setBio(data.bio || "");
         });
 
+      setGalleryLoading(true);
       fetch("/api/gallery?page=1&limit=12")
         .then(async res => {
           if (!res.ok) {
@@ -75,16 +77,19 @@ export default function ProfilePage() {
             setToast({ message: data.message || "Failed to load gallery.", type: "error" });
             setImages([]);
             setHasMore(false);
+            setGalleryLoading(false);
             return;
           }
           const data = await res.json();
           setImages(data.images || []);
           setHasMore(data.page < data.totalPages);
+          setGalleryLoading(false);
         })
         .catch(() => {
           setToast({ message: "Network error loading gallery.", type: "error" });
           setImages([]);
           setHasMore(false);
+          setGalleryLoading(false);
         });
     }
   }, [status, router]);
@@ -191,7 +196,7 @@ export default function ProfilePage() {
   }
 
   async function handleUpdate(id: string, title: string, description: string) {
-    setUpdateLoading(true); // <-- Only for the update button/spinner
+    setUpdateLoading(true);
     const res = await fetch("/api/update-image", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -307,13 +312,16 @@ export default function ProfilePage() {
 
       <div className="max-w-2xl mx-auto mt-12">
         <h2 className="text-2xl font-bold mb-6 text-center">My Gallery</h2>
-        {loading ? (
+        {galleryLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 sm:mx-auto mb-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
           </div>
-        ) : (
+        ) : images.length === 0 && !loadingMore ? (
+          <p className="mt-4 mx-4 text-gray-500 text-center">No images uploaded yet.</p>
+        ) : null}
+        {images.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mx-4 sm:mx-auto mb-4">
               {images.map(img => (
@@ -349,9 +357,6 @@ export default function ProfilePage() {
             )}
             {!hasMore && images.length > 0 && (
               <p className="text-center text-gray-500 my-6">You’ve reached the end.</p>
-            )}
-            {images.length === 0 && !loadingMore && (
-              <p className="mt-4 mx-4 text-gray-500 text-center">No images uploaded yet.</p>
             )}
           </>
         )}
