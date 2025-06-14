@@ -318,11 +318,9 @@ export default function PublicGallery() {
       <ConfirmModal
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
-        onConfirm={() => {
-          if (deleteId) handleDelete(deleteId);
-          setShowConfirm(false);
-          setDeleteId(null);
-        }}
+          onConfirm={async () => {
+            if (deleteId) await handleDelete(deleteId);
+          }}
         title="Delete Image"
         description="Are you sure you want to delete this image? This action cannot be undone."
         confirmText="Delete"
