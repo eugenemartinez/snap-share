@@ -138,7 +138,7 @@ export default function PublicProfile({
           {user.username}&apos;s Gallery
         </h2>
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 mx-4 sm:mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 sm:mx-auto">
             {Array.from({ length: 8 }).map((_, i) => (
               <GalleryCardSkeleton key={i} />
             ))}
