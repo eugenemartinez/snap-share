@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoginModal from "@/components/LoginModal";
 
 export default function FollowButton({
@@ -9,12 +9,14 @@ export default function FollowButton({
   initialFollowing,
   initialCount,
   setToast,
+  onLoginSuccess,
 }: {
   username: string;
   userEmail: string;
   initialFollowing: boolean;
   initialCount: number;
   setToast?: (toast: { message: string; type: "success" | "error" }) => void;
+  onLoginSuccess?: () => void;
 }) {
   const { data: session, status } = useSession();
   const isOwnProfile = session?.user?.email === userEmail;
@@ -23,6 +25,11 @@ export default function FollowButton({
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    setFollowing(initialFollowing);
+    setCount(initialCount);
+  }, [initialFollowing, initialCount]);
 
   async function toggleFollow() {
     if (status !== "authenticated") {
@@ -65,7 +72,13 @@ export default function FollowButton({
           {following ? "Unfollow" : "Follow"}
         </Button>
       )}
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
+      {showLogin && (
+        <LoginModal
+          onClose={() => setShowLogin(false)}
+          setToast={setToast}
+          onLoginSuccess={onLoginSuccess}
+        />
+      )}
     </div>
   );
 }

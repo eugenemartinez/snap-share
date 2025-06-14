@@ -46,6 +46,7 @@ export default function PublicProfile({
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [followState, setFollowState] = useState(followData);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const { setVisibleImageIds } = useLike();
 
@@ -75,6 +76,14 @@ export default function PublicProfile({
   useEffect(() => {
     setVisibleImageIds(images.map((img) => img.id));
   }, [images, setVisibleImageIds]);
+
+  const refetchFollowState = async () => {
+    const res = await fetch(`/api/user/${user!.username}/follow`);
+    if (res.ok) {
+      const data = await res.json();
+      setFollowState(data);
+    }
+  };
 
   if (!user) return <p>User not found.</p>;
   return (
@@ -114,9 +123,10 @@ export default function PublicProfile({
               <FollowButton
                 username={user.username}
                 userEmail={user.email}
-                initialFollowing={followData.following}
-                initialCount={followData.count}
+                initialFollowing={followState.following}
+                initialCount={followState.count}
                 setToast={setToast}
+                onLoginSuccess={refetchFollowState}
               />
             </div>
         </div>
