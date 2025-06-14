@@ -3,7 +3,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { PrismaClient } from "@prisma/client";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import ConfirmModal from "@/components/ConfirmModal";
 import Toast from "@/components/Toast";
@@ -13,6 +13,7 @@ import Button from "@/components/Button";
 import Head from "next/head";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]";
+import { useLike } from "@/context/LikeContext";
 
 const prisma = new PrismaClient();
 
@@ -41,6 +42,13 @@ export default function ImagePage({ image }: { image: ImageDetails | null }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [loading, setLoading] = useState(false);
+  const { setVisibleImageIds } = useLike();
+
+  useEffect(() => {
+    if (image) {
+      setVisibleImageIds([image.id]);
+    }
+  }, [image, setVisibleImageIds]);
 
   if (!image) return <p>Image not found.</p>;
 

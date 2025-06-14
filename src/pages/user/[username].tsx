@@ -11,6 +11,7 @@ import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import Toast from "@/components/Toast";
 import Button from "@/components/Button";
 import Head from "next/head";
+import { useLike } from "@/context/LikeContext";
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,6 @@ export default function PublicProfile({
   user: UserProfile | null;
   followData: { count: number; following: boolean };
 }) {
-
   const [images, setImages] = useState<ImageType[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -47,6 +47,7 @@ export default function PublicProfile({
   const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
+  const { setVisibleImageIds } = useLike();
 
   useEffect(() => {
     setLoading(true);
@@ -70,6 +71,10 @@ export default function PublicProfile({
         setLoadingMore(false);
       });
   }, [page, user?.username]);
+
+  useEffect(() => {
+    setVisibleImageIds(images.map((img) => img.id));
+  }, [images, setVisibleImageIds]);
 
   if (!user) return <p>User not found.</p>;
   return (

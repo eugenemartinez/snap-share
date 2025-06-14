@@ -12,6 +12,7 @@ import LikeButton from "@/components/LikeButton";
 import Link from "next/link";
 import Button from "@/components/Button";
 import Head from "next/head";
+import { useLike } from "@/context/LikeContext";
 
 type ImageType = {
   id: string;
@@ -42,6 +43,7 @@ export default function PublicGallery() {
   const cardRefs = useRef<{ [id: string]: GalleryCardHandle | null }>({});
   const [updateLoading, setUpdateLoading] = useState(false);
   const [, setDeleteLoadingId] = useState<string | null>(null);
+  const { setVisibleImageIds } = useLike();
 
   // Show toast if redirected with a toast query param (e.g. after login)
   useEffect(() => {
@@ -99,6 +101,10 @@ export default function PublicGallery() {
         setLoadingMore(false);
       });
   }, [page]);
+
+  useEffect(() => {
+    setVisibleImageIds(images.map(img => img.id));
+  }, [images, setVisibleImageIds]);
 
   async function handleDelete(id: string) {
     setDeleteLoadingId(id);

@@ -15,7 +15,7 @@ type LikeButtonProps = {
 const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
   ({ imageId, initialLiked, initialCount, onLike, setToast }, ref) => {
     const { status } = useSession();
-    const { likes, setLike, fetchLikeIfNeeded } = useLike();
+    const { likes, setLike, fetchLikeIfNeeded, refetchAllLikes, visibleImageIds } = useLike();
     const contextLike = likes[imageId];
 
     // Use context state if available, otherwise props
@@ -50,6 +50,13 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       getLiked: () => liked,
       getLikeCount: () => count,
     }));
+
+    // Add this handler for login success
+    const handleLoginSuccess = () => {
+      if (visibleImageIds.length > 0) {
+        refetchAllLikes(visibleImageIds);
+      }
+    };
 
     async function toggleLike() {
       if (status !== "authenticated") {
@@ -101,7 +108,7 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
             )}
             {!isButtonLoading && <span>{count}</span>}
           </button>
-          {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
+          {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLoginSuccess={handleLoginSuccess} />}
         </>
       );
     }
@@ -125,7 +132,7 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
           )}
           {!isButtonLoading && <span>{count}</span>}
         </button>
-        {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast} onLoginSuccess={handleLoginSuccess} />}
       </>
     );
   }

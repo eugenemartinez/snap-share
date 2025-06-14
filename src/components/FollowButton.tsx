@@ -52,7 +52,7 @@ export default function FollowButton({
 
   return (
     <div className="flex flex-col items-center">
-      <p className="text-gray-500 text-sm">
+      <p className="text-gray-500 text-sm mb-4">
         {count} follower{count === 1 ? "" : "s"}
       </p>
       {status !== "loading" && !isOwnProfile && (
@@ -60,7 +60,7 @@ export default function FollowButton({
           onClick={toggleFollow}
           loading={loading}
           variant={following ? "outline" : "primary"}
-          className={following ? "mt-4 border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
+          className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
         >
           {following ? "Unfollow" : "Follow"}
         </Button>

@@ -6,9 +6,11 @@ import Button from "@/components/Button";
 export default function LoginModal({
   onClose,
   setToast,
+  onLoginSuccess,
 }: {
   onClose: () => void;
   setToast?: (toast: { message: string; type: "success" | "error" }) => void;
+  onLoginSuccess?: () => void;
 }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +30,7 @@ export default function LoginModal({
     } else if (res?.ok) {
       onClose();
       setToast?.({ message: "Login successful!", type: "success" });
+      onLoginSuccess?.();
     } else {
       setToast?.({ message: "Invalid credentials", type: "error" });
     }
