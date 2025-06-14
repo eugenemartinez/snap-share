@@ -5,16 +5,20 @@ import LoginModal from "@/components/LoginModal";
 
 export default function FollowButton({
   username,
+  userEmail,
   initialFollowing,
   initialCount,
   setToast,
 }: {
   username: string;
+  userEmail: string;
   initialFollowing: boolean;
   initialCount: number;
   setToast?: (toast: { message: string; type: "success" | "error" }) => void;
 }) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const isOwnProfile = session?.user?.email === userEmail;
+
   const [following, setFollowing] = useState(initialFollowing);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
@@ -38,7 +42,6 @@ export default function FollowButton({
         });
       }
     } else {
-      // Handle follow limit error
       if (res.status === 403 && setToast) {
         const data = await res.json();
         setToast({ message: data.message || "Follow limit reached.", type: "error" });
@@ -49,17 +52,19 @@ export default function FollowButton({
 
   return (
     <div className="flex flex-col items-center">
-      <p className="text-gray-500 text-sm mb-4">
+      <p className="text-gray-500 text-sm">
         {count} follower{count === 1 ? "" : "s"}
       </p>
-      <Button
-        onClick={toggleFollow}
-        loading={loading}
-        variant={following ? "outline" : "primary"}
-        className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
-      >
-        {following ? "Unfollow" : "Follow"}
-      </Button>
+      {status !== "loading" && !isOwnProfile && (
+        <Button
+          onClick={toggleFollow}
+          loading={loading}
+          variant={following ? "outline" : "primary"}
+          className={following ? "mt-4 border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
+        >
+          {following ? "Unfollow" : "Follow"}
+        </Button>
+      )}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} setToast={setToast}/>}
     </div>
   );

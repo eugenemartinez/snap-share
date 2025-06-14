@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import LikeButton from "@/components/LikeButton";
 import FollowButton from "@/components/FollowButton";
-import { useSession } from "next-auth/react";
 import GalleryCardSkeleton from "@/components/GalleryCardSkeleton";
 import Toast from "@/components/Toast";
 import Button from "@/components/Button";
@@ -39,8 +38,6 @@ export default function PublicProfile({
   user: UserProfile | null;
   followData: { count: number; following: boolean };
 }) {
-  const { data: session } = useSession();
-  const isOwnProfile = session?.user?.email === user!.email;
 
   const [images, setImages] = useState<ImageType[]>([]);
   const [page, setPage] = useState(1);
@@ -108,16 +105,15 @@ export default function PublicProfile({
             className="rounded-full aspect-square object-cover border shadow"
           />
           <p className="mt-2 text-lg font-bold">@{user.username}</p>
-          {!isOwnProfile && (
             <div>
               <FollowButton
                 username={user.username}
+                userEmail={user.email}
                 initialFollowing={followData.following}
                 initialCount={followData.count}
                 setToast={setToast}
               />
             </div>
-          )}
         </div>
         {user.bio && <p className="mb-2 text-center">{user.bio}</p>}
       </div>
