@@ -15,32 +15,34 @@ type LikeButtonProps = {
 const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
   ({ imageId, initialLiked, initialCount, onLike, setToast }, ref) => {
     const { status } = useSession();
-    const { likes, setLike, fetchLikeIfNeeded, refetchAllLikes, visibleImageIds } = useLike();
+    const {
+      likes,
+      setLike,
+      fetchLikeIfNeeded,
+      refetchAllLikes,
+      visibleImageIds,
+      refetchingAfterLogin,
+      setRefetchingAfterLogin,
+    } = useLike();
     const contextLike = likes[imageId];
 
-    // Use context state if available, otherwise props
     const [liked, setLiked] = useState(contextLike?.liked ?? initialLiked);
     const [count, setCount] = useState(contextLike?.count ?? initialCount);
     const [loading, setLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
-    const [initializing, setInitializing] = useState(!contextLike);
-
-    const isButtonLoading = loading || initializing;
 
     // Sync local state with context if it changes
     useEffect(() => {
       if (contextLike) {
         setLiked(contextLike.liked);
         setCount(contextLike.count);
-        setInitializing(false);
       }
     }, [contextLike]);
 
     // Only fetch if not already in context
     useEffect(() => {
       if (!contextLike) {
-        setInitializing(true);
-        fetchLikeIfNeeded(imageId).finally(() => setInitializing(false));
+        fetchLikeIfNeeded(imageId);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imageId]);
@@ -51,10 +53,12 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       getLikeCount: () => count,
     }));
 
-    // Add this handler for login success
-    const handleLoginSuccess = () => {
+    // Handler for login success: show loading spinner while refetching
+    const handleLoginSuccess = async () => {
       if (visibleImageIds.length > 0) {
-        refetchAllLikes(visibleImageIds);
+        setRefetchingAfterLogin(true);
+        await refetchAllLikes(visibleImageIds);
+        setRefetchingAfterLogin(false);
       }
     };
 
@@ -87,6 +91,8 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       }
       setLoading(false);
     }
+
+    const isButtonLoading = loading || refetchingAfterLogin;
 
     if (liked) {
       return (

@@ -11,6 +11,8 @@ const LikeContext = createContext<{
   refetchAllLikes: (imageIds: string[]) => Promise<void>;
   visibleImageIds: string[];
   setVisibleImageIds: (ids: string[]) => void;
+  refetchingAfterLogin: boolean;
+  setRefetchingAfterLogin: (v: boolean) => void;
 }>({
   likes: {},
   setLike: () => {},
@@ -18,6 +20,8 @@ const LikeContext = createContext<{
   refetchAllLikes: async () => {},
   visibleImageIds: [],
   setVisibleImageIds: () => {},
+  refetchingAfterLogin: false,
+  setRefetchingAfterLogin: () => {},
 });
 
 export const useLike = () => useContext(LikeContext);
@@ -25,6 +29,7 @@ export const useLike = () => useContext(LikeContext);
 export const LikeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [likes, setLikes] = useState<LikeState>({});
   const [visibleImageIds, setVisibleImageIds] = useState<string[]>([]);
+  const [refetchingAfterLogin, setRefetchingAfterLogin] = useState(false);
 
   function setLike(imageId: string, liked: boolean, count: number) {
     setLikes(prev => ({ ...prev, [imageId]: { liked, count } }));
@@ -61,6 +66,8 @@ export const LikeProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refetchAllLikes,
       visibleImageIds,
       setVisibleImageIds,
+      refetchingAfterLogin,
+      setRefetchingAfterLogin,
     }}>
       {children}
     </LikeContext.Provider>
