@@ -30,19 +30,22 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
     const [count, setCount] = useState(contextLike?.count ?? initialCount);
     const [loading, setLoading] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
+    const [initializing, setInitializing] = useState(!contextLike);
 
     // Sync local state with context if it changes
     useEffect(() => {
       if (contextLike) {
         setLiked(contextLike.liked);
         setCount(contextLike.count);
+        setInitializing(false);
       }
     }, [contextLike]);
 
     // Only fetch if not already in context
     useEffect(() => {
       if (!contextLike) {
-        fetchLikeIfNeeded(imageId);
+        setInitializing(true);
+        fetchLikeIfNeeded(imageId).finally(() => setInitializing(false));
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [imageId]);
@@ -92,7 +95,7 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       setLoading(false);
     }
 
-    const isButtonLoading = loading || refetchingAfterLogin;
+    const isButtonLoading = loading || refetchingAfterLogin || initializing;
 
     if (liked) {
       return (
