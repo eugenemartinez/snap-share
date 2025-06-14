@@ -29,32 +29,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (likeCount >= LIKE_LIMIT) {
       return res.status(403).json({ message: "Like limit reached. No more likes allowed." });
     }
-    // Like image
-    await prisma.imageLike.upsert({
+    // Like image (upsert)
+    const existingLike = await prisma.imageLike.findUnique({
       where: { userId_imageId: { userId: user!.id, imageId } },
-      update: {},
-      create: { userId: user!.id, imageId },
     });
+    if (!existingLike) {
+      await prisma.imageLike.create({
+        data: { userId: user!.id, imageId },
+      });
+      await prisma.image.update({
+        where: { id: imageId },
+        data: { likeCount: { increment: 1 } },
+      });
+    }
     return res.status(200).json({ liked: true });
   }
 
   if (req.method === "DELETE") {
     // Unlike image
-    await prisma.imageLike.deleteMany({
+    const deleted = await prisma.imageLike.deleteMany({
       where: { userId: user!.id, imageId },
     });
+    if (deleted.count > 0) {
+      await prisma.image.update({
+        where: { id: imageId },
+        data: { likeCount: { decrement: deleted.count } },
+      });
+    }
     return res.status(200).json({ liked: false });
   }
 
   if (req.method === "GET") {
-    // Get like count and if user liked (if authenticated)
-    const [count, liked] = await Promise.all([
-      prisma.imageLike.count({ where: { imageId } }),
-      user
-        ? prisma.imageLike.findUnique({ where: { userId_imageId: { userId: user.id, imageId } } })
-        : Promise.resolve(null),
-    ]);
-    return res.status(200).json({ count, liked: !!liked });
+    const image = await prisma.image.findUnique({ where: { id: imageId } });
+    if (!image) return res.status(404).json({ message: "Image not found" });
+
+    let liked = false;
+    if (user) {
+      liked = !!(await prisma.imageLike.findUnique({
+        where: { userId_imageId: { userId: user.id, imageId } },
+      }));
+    }
+    // Fallback to 0 if likeCount is undefined
+    return res.status(200).json({ count: image.likeCount ?? 0, liked });
   }
 
   res.status(405).end();
