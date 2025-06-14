@@ -25,16 +25,11 @@ export default function FollowButton({
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [initializing, setInitializing] = useState(status === "loading");
 
   useEffect(() => {
     setFollowing(initialFollowing);
     setCount(initialCount);
   }, [initialFollowing, initialCount]);
-
-  useEffect(() => {
-    setInitializing(status === "loading");
-  }, [status]);
 
   async function toggleFollow() {
     if (status !== "authenticated") {
@@ -67,19 +62,15 @@ export default function FollowButton({
       <p className="text-gray-500 text-sm mb-4">
         {count} follower{count === 1 ? "" : "s"}
       </p>
-      {initializing ? (
-        <div className="w-24 h-9 rounded bg-[var(--input)] animate-pulse mb-4" />
-      ) : (
-        !isOwnProfile && (
-          <Button
-            onClick={toggleFollow}
-            loading={loading}
-            variant={following ? "outline" : "primary"}
-            className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
-          >
-            {following ? "Unfollow" : "Follow"}
-          </Button>
-        )
+      {status !== "loading" && !isOwnProfile && (
+        <Button
+          onClick={toggleFollow}
+          loading={loading}
+          variant={following ? "outline" : "primary"}
+          className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
+        >
+          {following ? "Unfollow" : "Follow"}
+        </Button>
       )}
       {showLogin && (
         <LoginModal

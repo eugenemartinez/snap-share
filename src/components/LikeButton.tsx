@@ -88,20 +88,13 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
       setLoading(false);
     }
 
-    // Show skeleton while initializing/loading
-    if (initializing || status === "loading") {
-      return (
-        <div className="w-16 h-8 rounded-full bg-[var(--input)] animate-pulse" />
-      );
-    }
-
     if (liked) {
       return (
         <>
           <button
             onClick={toggleLike}
             disabled={isButtonLoading}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-primary/10 text-foreground/50 hover:bg-primary/30 ${
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-primary/10 text-foreground/50 hover:bg-primary/30 cursor-pointer ${
               isButtonLoading ? "cursor-not-allowed" : "cursor-pointer"
             }`}
             aria-pressed="true"
@@ -125,8 +118,8 @@ const LikeButton = forwardRef<{ refetch: () => void }, LikeButtonProps>(
         <button
           onClick={toggleLike}
           disabled={isButtonLoading}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-primary/10 text-foreground/50 hover:bg-primary/30 ${
-          isButtonLoading ? "cursor-not-allowed" : "cursor-pointer"
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-full font-semibold transition bg-primary/10 text-foreground/50 hover:bg-primary/30 cursor-pointer ${
+            isButtonLoading ? "cursor-not-allowed" : "cursor-pointer"
           }`}
           aria-pressed="false"
           aria-label="Like image"
