@@ -7,7 +7,7 @@ import { rateLimit } from "@/utils/rateLimit";
 const prisma = new PrismaClient();
 
 const loginRateLimitStore: Record<string, { count: number; reset: number }> = {};
-const LOGIN_LIMIT = 100; // max attempts per window
+const LOGIN_LIMIT = 10; // max attempts per window
 const LOGIN_WINDOW = 60 * 60 * 1000; // 1 hour
 
 export const authOptions: NextAuthOptions = {
