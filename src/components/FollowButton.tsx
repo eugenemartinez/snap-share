@@ -2,6 +2,7 @@ import Button from "@/components/Button";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import LoginModal from "@/components/LoginModal";
+import { FaSpinner } from "react-icons/fa";
 
 export default function FollowButton({
   username,
@@ -25,6 +26,7 @@ export default function FollowButton({
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [refetchingAfterLogin, setRefetchingAfterLogin] = useState(false);
 
   useEffect(() => {
     setFollowing(initialFollowing);
@@ -57,26 +59,43 @@ export default function FollowButton({
     setLoading(false);
   }
 
+  const handleLoginSuccess = async () => {
+    setRefetchingAfterLogin(true);
+    if (onLoginSuccess) await onLoginSuccess();
+    setRefetchingAfterLogin(false);
+  };
+
   return (
     <div className="flex flex-col items-center">
       <p className="text-gray-500 text-sm mb-4">
         {count} follower{count === 1 ? "" : "s"}
       </p>
       {status !== "loading" && !isOwnProfile && (
-        <Button
-          onClick={toggleFollow}
-          loading={loading}
-          variant={following ? "outline" : "primary"}
-          className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
-        >
-          {following ? "Unfollow" : "Follow"}
-        </Button>
+        refetchingAfterLogin ? (
+          <button
+            className="flex items-center justify-center px-4 py-2 rounded font-semibold transition w-24 h-10 bg-[var(--input)]"
+            disabled
+            aria-label="Loading"
+            type="button"
+          >
+            <FaSpinner className="animate-spin" />
+          </button>
+        ) : (
+          <Button
+            onClick={toggleFollow}
+            loading={loading}
+            variant={following ? "outline" : "primary"}
+            className={following ? "border-[var(--unfollow-bg)] text-[var(--unfollow-fg)] hover:bg-[var(--muted)]" : ""}
+          >
+            {following ? "Unfollow" : "Follow"}
+          </Button>
+        )
       )}
       {showLogin && (
         <LoginModal
           onClose={() => setShowLogin(false)}
           setToast={setToast}
-          onLoginSuccess={onLoginSuccess}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
     </div>
